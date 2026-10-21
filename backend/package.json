@@ -4,7 +4,7 @@
   "description": "OH I SEE Industrial Solutions \u00e2\u20ac\u201d Node.js/Express API Backend",
   "main": "src/server.js",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "22.x"
   },
   "scripts": {
     "server": "node src/server.js",

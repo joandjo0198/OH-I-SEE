@@ -1,9 +1,9 @@
 {
   "name": "ohisee-frontend",
   "version": "1.0.0",
-  "description": "OH I SEE Industrial Solutions — Frontend",
+  "description": "OH I SEE Industrial Solutions \u00e2\u20ac\u201d Frontend",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "vite",
