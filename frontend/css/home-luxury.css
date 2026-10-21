@@ -1,10 +1,10 @@
 /* Architectural background with independent, live hero content. */
-.hero-clean-motion{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;transform-origin:75% 50%;animation:hero-camera-drift 18s ease-in-out infinite alternate;animation-play-state:paused}
+.hero-clean-motion{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;transform-origin:75% 50%;animation-play-state:paused}
 .hero-service-flow{stroke-width:2.5;stroke-dasharray:18 110;animation:hero-service-travel 4s linear infinite;animation-play-state:paused}
 .hero-service-electric{stroke:#fff4a1}.hero-service-water{stroke:#c2f8ff;animation-duration:3s}.hero-service-hot{stroke:#ffcec4;animation-direction:reverse;animation-duration:3.5s}
 .hero-service-pulse{animation:hero-service-beacon 3s ease-in-out infinite;animation-play-state:paused}
 .hero-clean-motion.is-running,.hero-clean-motion.is-running .hero-service-flow,.hero-clean-motion.is-running .hero-service-pulse{animation-play-state:running}
-@keyframes hero-camera-drift{from{transform:scale(1)}to{transform:scale(1.035)}}
+
 @keyframes hero-service-travel{to{stroke-dashoffset:-256}}
 @keyframes hero-service-beacon{0%,100%{opacity:.2}50%{opacity:.95}}
 #hero-scroll{--hero-header:72px;--hero-bottom:0px;height:auto;background:#071119}
@@ -64,16 +64,23 @@ body.home-dark .page-loader{display:none}
 /* Keep the prepared 42% text-safe area aligned at narrow widths. */
 @media(max-width:650px){.hero-construction-film{object-position:62% center}#hero:has(.hero-construction-film.is-playing) .hero-copy-scrim{background:linear-gradient(90deg,#03090ed9,#03090e80)}#hero .hero-film-control{top:10px;right:12px;font-size:10px;padding:7px 10px}}
 
-/* Contain the entire image so responsive viewports cannot clip callout text. */
-.hero-construction-film{object-fit:contain;object-position:center center;background:#0c151c}
-@media(max-width:650px){.hero-construction-film{object-fit:contain;object-position:center 14%;background:#0c151c}}
-
-/* Prepared safe area for live copy; preserve the building's aspect ratio. */
-.hero-construction-film,.hero-clean-background{object-fit:cover;object-position:right center;background:#0a1119}
-#hero .hero-copy-scrim,#hero:has(.hero-construction-film.is-playing) .hero-copy-scrim{background:linear-gradient(90deg,#03090ef5 0%,#03090ed9 30%,#03090e80 48%,transparent 67%)}
-@media(max-width:650px){
- .hero-construction-film,.hero-clean-background{object-position:76% center}
- #hero .hero-copy-scrim,#hero:has(.hero-construction-film.is-playing) .hero-copy-scrim{background:linear-gradient(90deg,#03090ee6,#03090e70)}
+/* Fixed 270:134 frame: no cover crop, camera transform, or baked side panel. */
+#hero-scroll #hero.hero-image-only{height:auto;aspect-ratio:270/134}
+.hero-construction-film,.hero-clean-background{object-fit:contain;object-position:center;transform:none;background:transparent}
+#hero .hero-copy-scrim,#hero:has(.hero-construction-film.is-playing) .hero-copy-scrim{background:linear-gradient(90deg,rgba(3,9,14,.7),rgba(3,9,14,.35) 38%,transparent 65%)}
+/* On small screens the complete scene sits above the copy, rather than being cropped to portrait. */
+@media(max-width:900px){
+ #hero-scroll #hero.hero-image-only{aspect-ratio:auto;display:flex;flex-direction:column;padding-top:49.62963%;background:#10222d}
+ .hero-construction-film,.hero-clean-background{height:auto;aspect-ratio:270/134;bottom:auto}
+ #hero .hero-copy-scrim{display:none}
+ .hero-copy-wrapper{position:relative;inset:auto;overflow:visible;padding:24px 5% 30px;display:flex;flex-direction:column;gap:18px}
+ .hero-enter{position:static;max-width:100%;width:auto;transform:none}
+ .hero-copy-badge{align-self:flex-start;white-space:normal}
+ .hero-copy-title,.hero-copy-accent{font-size:clamp(26px,5.8vw,50px);white-space:normal;line-height:1.1}
+ .hero-copy-tagline{white-space:normal;font-size:10px;letter-spacing:1px}
+ .hero-copy-description{width:100%;font-size:14px}
+ .hero-copy-buttons{height:auto;min-height:48px;width:100%}
+ .hero-copy-statistics{width:100%;height:auto;min-height:80px}
 }
 
 @media(min-width:651px){.hero-copy-description{width:43%;max-width:800px;font-size:clamp(12px,1vw,20px);line-height:1.45}.hero-desktop-break{display:none}}
