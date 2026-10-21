@@ -1,4 +1,4 @@
-"""Lock the scene to frame 150, retaining animation only inside the house."""
+"""Smooth camera motion without slicing through the architectural silhouette."""
 from pathlib import Path
 import sys, subprocess, json
 import cv2
@@ -77,9 +77,21 @@ for i, frame in frames.items():
         shift=np.median(delta[valid],axis=0)
         tracked[i].append((points+shift,color))
 
-house_mask = np.zeros((1080,1920), np.uint8)
-cv2.fillPoly(house_mask, [np.array([(490,0),(1670,0),(1670,600),(1585,650),(1510,940),(800,940),(550,850),(500,450)], np.int32)], 255)
-house_alpha = cv2.GaussianBlur(house_mask, (21,21), 0).astype(np.float32)[:,:,None]/255
+# Fit a continuous camera trajectory instead of applying noisy per-frame estimates.
+# The house is never cut out: a single transform covers its entire silhouette.
+indices = np.array(sorted(stabilizers))
+matrices = np.array([stabilizers[i] for i in indices])
+x = np.linspace(-1, 1, len(indices))
+for row in range(2):
+    for col in range(3):
+        matrices[:,row,col] = np.polynomial.polynomial.polyval(x, np.polynomial.polynomial.polyfit(x, matrices[:,row,col], 3))
+stabilizers = dict(zip(indices, matrices))
+# Preserve only the parked vehicle, feathered within the carport. No mask edge
+# crosses the facade, columns, balcony, trees, or roof.
+car_mask = np.zeros((1080,1920), np.uint8)
+car_mask[780:1040,1630:1920] = 255
+car_alpha = cv2.GaussianBlur(car_mask, (61,61), 0).astype(np.float32)[:,:,None]/255
+car_reference = cv2.warpAffine(repaired[150], stabilizers[150], (1920,1080), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REFLECT_101)
 
 def render(index,tick):
     frame=repaired[index].copy()
@@ -98,8 +110,8 @@ def render(index,tick):
                     cv2.polylines(overlay,[line],False,(235,245,255),1,cv2.LINE_AA)
         frame=cv2.addWeighted(overlay,strength*.85,frame,1-strength*.85,0)
     locked = cv2.warpAffine(frame, stabilizers[index], (1920,1080), flags=cv2.INTER_LANCZOS4, borderMode=cv2.BORDER_REFLECT_101)
-    # The original landscape and repaired car are identical in every frame.
-    composite = np.clip(locked*house_alpha + repaired[150]*(1-house_alpha),0,255).astype(np.uint8)
+    # Keep the whole architecture continuous, with the parked car held in place.
+    composite = np.clip(locked*(1-car_alpha) + car_reference*car_alpha,0,255).astype(np.uint8)
     # Remove navigation baked into the supplied footage, without removing the car.
     return cv2.resize(composite[128:], (2160,1072), interpolation=cv2.INTER_LANCZOS4)
 
