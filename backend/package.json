@@ -1,0 +1,40 @@
+{
+  "name": "ohisee-backend",
+  "version": "1.0.0",
+  "description": "OH I SEE Industrial Solutions \u00e2\u20ac\u201d Node.js/Express API Backend",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "server": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/construction.test.js tests/construction-api.test.js tests/construction-auth.test.js",
+    "test:bim": "node --test tests/bim.test.js",
+    "test:soil": "node --test tests/soil.test.js",
+    "test:soil:integration": "node tests/soil.integration.js",
+    "worker:3d": "node src/workers/design3d.js",
+    "test:3d": "node --test tests/design3d.test.js",
+    "test:marketplace": "node --test tests/marketplace-domain.test.js tests/marketplace-api.test.js",
+    "test:roadmap": "node --test tests/roadmap.test.js",
+    "migrate:materials": "node scripts/migrate-materials.js",
+    "check:materials": "node scripts/migrate-materials.js --check"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.45.0",
+    "ajv": "^8.20.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.3.1",
+    "express-validator": "^7.1.0",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "nodemailer": "^10.1.2",
+    "ws": "^8.21.0"
+  }
+}

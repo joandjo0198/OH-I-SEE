@@ -1,0 +1,12 @@
+const $=id=>document.getElementById(id);
+const base=(window.resolveOhiseeApiBase?.()||'http://localhost:3001/api').replace(/\/$/,'')+'/material-workflow';
+let products=[],canApprove=false;
+const defaults={kind:'fixture',subcategory:'',qualityTier:'',model:'',variant:'',sku:'',dimensions:{width:0.1,height:0.1,depth:0.1},mounting:'floor',assetUrl:'',imageUrl:'',productUrl:'',material:{color:'#ffffff',roughness:0.6,metalness:0,map:'',normalMap:'',roughnessMap:''},electrical:{lumens:800,temperature:3000,watts:10,beamAngle:60},warranty:'',installation:'',priceValidUntil:null};
+async function api(path,options={}){const r=await fetch(base+path,{...options,headers:{...window.bimAuthHeader(),'Content-Type':'application/json'}});const result=await r.json();if(!r.ok)throw new Error(result.error||'Unable to load product specifications.');return result;}
+function display(){const p=products.find(p=>p.id===$('product').value);$('save').disabled=!p;if(!p)return;const spec=p.product_bim_specs;$('details').textContent=`${p.brand||''} · ${p.unit} · Price ${p.price} · Stock ${p.stock} · Specification version ${spec?.version||0}`;$('spec').value=JSON.stringify(spec?.metadata||defaults,null,2);$('review').value=spec?.status||'pending';$('review').disabled=!canApprove;}
+$('product').addEventListener('change',display);
+$('spec-form').addEventListener('submit',async e=>{e.preventDefault();$('save').disabled=true;try{const p=products.find(p=>p.id===$('product').value);const metadata=JSON.parse($('spec').value);const result=await api('/catalog/'+encodeURIComponent(p.id)+'/specification',{method:'PUT',body:JSON.stringify({version:p.product_bim_specs?.version||0,status:$('review').value,metadata})});p.product_bim_specs=result.data;display();$('status').textContent=canApprove?'Specification saved.':'Saved and submitted for administrator review.';}catch(e){$('status').textContent=e.message;}finally{$('save').disabled=false;}});
+async function init(){try{const result=await api('/catalog/manage');products=result.data;canApprove=result.canApprove;for(const p of products){const option=document.createElement('option');option.value=p.id;option.textContent=p.name;$('product').append(option);}display();if(!products.length)$('status').textContent='No catalog products available. Add a product in your vendor dashboard first.';}catch(e){$('status').textContent=e.message;$('save').disabled=true;}
+
+}
+init();

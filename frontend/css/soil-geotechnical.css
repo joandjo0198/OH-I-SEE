@@ -1,0 +1,98 @@
+.soil-page { color: #e8e8e8; }
+.soil-page .pw-header { padding-inline: 24px; }
+.soil-page .pw-topbar p { margin: 8px 0 0; max-width: 760px; }
+.soil-muted { color: #a4a4a4; font-size: 13px; line-height: 1.6; }
+.soil-page .pw-stat-label { color: #aaa; }
+.soil-meta { display: flex; flex-wrap: wrap; gap: 14px 30px; margin-bottom: 20px; }
+.soil-meta div { min-width: 115px; }
+.soil-meta dt { font-size: 11px; color: #999; text-transform: uppercase; }
+.soil-meta dd { margin: 5px 0 0; overflow-wrap: anywhere; }
+.soil-summary { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 12px; margin: 20px 0; }
+.soil-summary .pw-stat-card { padding: 16px; }
+.soil-summary .pw-stat-value { font-size: 19px; }
+.soil-note { padding: 14px 18px; border-left: 3px solid #ffd400; background: #19180e; font-size: 12px; line-height: 1.7; color: #d5d1b9; }
+.soil-tabs, .soil-actions, .soil-toolbar, .soil-pagination { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.soil-tabs { margin: 24px 0 16px; }
+.soil-tabs [aria-pressed=true] { background: #ffd400; color: #111; border-color: #ffd400; }
+.soil-toolbar { justify-content: space-between; margin: 16px 0; }
+.soil-toolbar h2 { font-size: 18px; margin: 0; }
+.soil-page input, .soil-page select, .soil-page textarea, .soil-dialog input, .soil-dialog select, .soil-dialog textarea { background: #151515; color: #eee; border: 1px solid #484848; border-radius: 7px; padding: 10px; font: inherit; width: 100%; min-width: 0; }
+.soil-toolbar input { max-width: 320px; }
+.soil-page :focus-visible, .soil-dialog :focus-visible { outline: 2px solid #ffd400; outline-offset: 3px; }
+.soil-table-wrap { width: 100%; overflow: auto; border: 1px solid #292929; border-radius: 9px; }
+.soil-table-wrap table { width: 100%; min-width: 680px; border-collapse: collapse; text-align: left; font-size: 13px; }
+.soil-table-wrap th { background: #191919; color: #aaa; font-size: 11px; text-transform: uppercase; }
+.soil-table-wrap td, .soil-table-wrap th { padding: 13px 14px; border-bottom: 1px solid #262626; vertical-align: top; }
+.soil-table-wrap td { max-width: 300px; overflow-wrap: anywhere; }
+.soil-table-wrap .pw-btn { padding: 7px 9px; font-size: 10px; }
+.soil-pagination { justify-content: flex-end; margin-top: 16px; font-size: 12px; }
+.soil-empty { padding: 44px 20px; text-align: center; color: #aaa; }
+.soil-status { border-radius: 20px; padding: 5px 10px; display: inline-block; font-size: 12px; background: #232323; color: #ccc; }
+.soil-status.progress { background: #132b3b; color: #92d4ff; }
+.soil-alert { margin: 14px 0; padding: 13px; background: #17271c; color: #bfe4cb; border: 1px solid #30583c; border-radius: 8px; }
+.soil-alert.error { background: #351b1b; border-color: #844; color: #ffd2d2; }
+.soil-dialog { position: fixed; inset: 0; margin: auto; height: fit-content; overflow: auto; box-sizing: border-box; background: #101010; color: #eee; border: 1px solid #444; border-radius: 14px; width: min(860px,94vw); max-height: 90vh; padding: 24px; }
+.soil-dialog::backdrop { background: #000b; }
+.soil-dialog h2 { font-size: 20px; margin: 0 0 8px; }
+.soil-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 22px 0; }
+.soil-form-grid label { display: flex; flex-direction: column; gap: 7px; font-size: 13px; color: #ccc; }
+.soil-form-grid .wide { grid-column: 1/-1; }
+.soil-dialog .soil-actions { justify-content: flex-end; margin-top: 20px; }
+.soil-profile { position: relative; margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 10px; }
+.soil-profile svg { display: block; width: 100%; max-height: 720px; }
+.soil-log-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.soil-progress { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 12px; color: #aaa; margin-top: 18px; }
+.soil-page [hidden], .soil-dialog [hidden] { display: none !important; }
+@media (max-width: 700px) { .soil-form-grid { grid-template-columns: 1fr; } .soil-page .pw-content, .soil-page .pw-topbar { padding: 16px; } .soil-summary { grid-template-columns: 1fr 1fr; } .soil-dialog { padding: 17px; } .soil-toolbar input { max-width: none; } }
+
+.soil-embedded .pw-header, .soil-embedded .pw-sidebar { display: none; }
+.soil-embedded .pw-shell { display: block; min-height: 0; }
+.soil-embedded .pw-topbar { padding-top: 16px; }
+/* Dialog is also used in the wizard's top-level document. Keep its styles scoped. */
+.soil-dialog { padding: 0; width: min(800px, calc(100vw - 32px)); max-width: none; max-height: min(900px, calc(100dvh - 32px)); overflow: hidden; color-scheme: dark; font: 14px/1.5 Inter, system-ui, sans-serif; text-align: left; box-shadow: 0 24px 100px #0009; }
+.soil-dialog[open] { display: flex; flex-direction: column; }
+.soil-dialog, .soil-dialog * { box-sizing: border-box; }
+.soil-dialog::backdrop { background: #000b; backdrop-filter: blur(4px); }
+.soil-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 24px 16px; border-bottom: 1px solid #303030; flex-shrink: 0; }
+.soil-dialog .soil-eyebrow { display: block; color: #ffd400; text-transform: uppercase; letter-spacing: 1.5px; font-size: 10px; font-weight: 700; margin-bottom: 6px; }
+.soil-dialog h2 { margin: 0; color: #f5f5f5; font: 600 24px/1.2 Inter, system-ui, sans-serif; }
+.soil-dialog-body { padding: 20px 24px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.soil-dialog-footer { display: flex; align-items: center; justify-content: flex-end; gap: 12px; padding: 16px 24px; border-top: 1px solid #303030; background: #171717; flex-shrink: 0; }
+.soil-dialog-footer .soil-muted { margin-right: auto; font-size: 12px; }
+.soil-dialog .pw-btn, .soil-dialog .soil-icon-button { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; min-height: 42px; border: 1px solid #484848; border-radius: 8px; background: #222; color: #eee; font: 600 13px/1.3 Inter, system-ui, sans-serif; text-transform: none; letter-spacing: normal; cursor: pointer; white-space: nowrap; }
+.soil-dialog .pw-btn-primary { background: #ffd400; color: #121212; border-color: #ffd400; }
+.soil-dialog .soil-icon-button { padding: 0; width: 42px; font-size: 27px; flex-shrink: 0; }
+.soil-dialog button:hover { filter: brightness(1.12); }
+.soil-dialog button:disabled { opacity: .5; cursor: wait; }
+.soil-dialog input:disabled, .soil-dialog select:disabled, .soil-dialog textarea:disabled { opacity: .8; cursor: default; }
+.soil-dialog .soil-form-grid { grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: start; margin: 18px 0; gap: 18px; }
+.soil-dialog input, .soil-dialog select, .soil-dialog textarea { min-height: 44px; font-size: 14px; line-height: 1.5; }
+.soil-dialog textarea { resize: vertical; }
+.soil-dialog label small { color: #aaa; font-size: 11px; font-weight: 400; }
+.soil-dialog .soil-required { color: #ffd400; }
+.soil-form-context { display: flex; flex-direction: column; padding: 12px 14px; background: #202017; border: 1px solid #444127; border-radius: 8px; gap: 3px; overflow-wrap: anywhere; }
+.soil-form-context strong { color: #f0eedc; font-size: 14px; }
+.soil-form-context span { font-size: 12px; color: #bcbbaa; }
+.soil-source-context { border-left: 3px solid #d5b52f; padding: 12px 14px; background: #1d1d19; color: #c9c6b4; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.soil-optional { margin-top: 20px; border-top: 1px solid #333; padding-top: 16px; }
+.soil-optional summary { cursor: pointer; color: #ddd; font-weight: 600; }
+.soil-optional summary span { color: #999; font-size: 11px; font-weight: 400; margin-left: 8px; }
+@media (max-width: 560px) {
+  .soil-dialog { width: calc(100vw - 16px); max-height: calc(100dvh - 16px); border-radius: 12px; }
+  .soil-dialog-header, .soil-dialog-body { padding: 16px; }
+  .soil-dialog-footer { padding: 12px 16px; flex-wrap: wrap; }
+  .soil-dialog-footer .soil-muted { width: 100%; font-size: 11px; }
+  .soil-dialog .soil-form-grid { grid-template-columns: minmax(0,1fr); gap: 14px; }
+  .soil-dialog input, .soil-dialog select, .soil-dialog textarea { font-size: 16px; }
+}
+[data-theme="light"] .soil-page { background: #f7f6f1; color: #252525; }
+[data-theme="light"] :is(.soil-page .pw-stat-card, .soil-page .pw-topbar, .soil-page .pw-sidebar, .soil-dialog) { background: #fff; color: #252525; border-color: #d6d2c5; color-scheme: light; }
+[data-theme="light"] :is(.soil-page, .soil-dialog) :is(input,select,textarea) { background: #fff; color: #252525; border-color: #aaa79d; }
+[data-theme="light"] :is(.soil-page, .soil-dialog) :is(h1,h2,label,.pw-stat-value,.soil-meta dd) { color: #252525; }
+[data-theme="light"] :is(.soil-page, .soil-dialog) :is(.soil-muted,.soil-empty,.soil-progress,.pw-stat-label,label small) { color: #656155; }
+[data-theme="light"] :is(.soil-dialog-footer,.soil-form-context,.soil-source-context,.soil-note) { background: #faf6e5; color: #514929; border-color: #ded5b0; }
+[data-theme="light"] .soil-form-context :is(strong,span) { color: #514929; }
+[data-theme="light"] :is(.soil-page,.soil-dialog) .pw-btn:not(.pw-btn-primary):not([aria-pressed=true]) { background: #f4f2ec; color: #292929; border-color: #ccc8bb; }
+[data-theme="light"] .soil-table-wrap th { background: #eeece5; color: #514d42; }
+[data-theme="light"] .soil-table-wrap :is(td,th) { border-color: #ddd8c9; }
+[data-theme="light"] .soil-dialog .soil-optional summary { color: #353125; }

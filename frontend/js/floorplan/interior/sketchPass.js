@@ -1,0 +1,6 @@
+// Screen-space graphite outlines and lighting-driven hatching; compare uses the same camera.
+export const sketchShader={uniforms:{tDiffuse:{value:null},resolution:{value:null},mode:{value:0},split:{value:.5}},vertexShader:`varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,fragmentShader:`
+ uniform sampler2D tDiffuse;uniform vec2 resolution;uniform float mode;uniform float split;varying vec2 vUv;
+ float lum(vec2 uv){return dot(texture2D(tDiffuse,uv).rgb,vec3(.299,.587,.114));}
+ void main(){vec2 p=1./resolution;vec4 source=texture2D(tDiffuse,vUv);float a=lum(vUv+vec2(-p.x,p.y)),b=lum(vUv+vec2(0.,p.y)),c=lum(vUv+p),d=lum(vUv-vec2(p.x,0.)),e=lum(vUv+vec2(p.x,0.)),f=lum(vUv-p),g=lum(vUv-vec2(0.,p.y)),h=lum(vUv+vec2(p.x,-p.y));float edge=length(vec2(-a-2.*d-f+c+2.*e+h,-a-2.*b-c+f+2.*g+h));float tone=lum(vUv);vec2 pixel=vUv*resolution;float hatch=step(.82,fract((pixel.x+pixel.y+sin(pixel.y*.04)*1.5)/7.))*smoothstep(.7,.1,tone);hatch+=step(.9,fract((pixel.x-pixel.y)/9.))*smoothstep(.35,.05,tone);float paper=.97-.018*fract(sin(dot(pixel,vec2(12.9,78.2)))*43758.5);vec3 pencil=vec3(clamp(paper-edge*.8-(1.-tone)*.13-hatch*.16,0.,1.));bool sketch=mode<.5||(mode>1.5&&vUv.x<split);gl_FragColor=vec4(sketch?pencil:source.rgb,1.);}
+ `};

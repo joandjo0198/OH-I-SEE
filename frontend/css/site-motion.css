@@ -1,0 +1,111 @@
+/* Shared progressive motion. No content depends on animation to become visible. */
+.site-scroll-depth {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 3px;
+  z-index: 10001;
+  pointer-events: none;
+}
+.site-scroll-depth span {
+  display: block;
+  height: 100%;
+  background: #ffd400;
+  box-shadow: 0 0 12px #ffd40070;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+.motion-enabled .hero-ai-content,
+.motion-enabled .hero-ai {
+  perspective: 1200px;
+}
+.motion-enabled .motion-scene {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+}
+.motion-scene > .container,
+.motion-scene > .build-cta-inner,
+.motion-scene > .home-design-actions {
+  position: relative;
+  z-index: 1;
+}
+.architectural-depth {
+  position: absolute;
+  left: var(--scene-side, -100px);
+  right: var(--scene-right, auto);
+  top: 12%;
+  width: min(54vw, 660px);
+  pointer-events: none;
+  color: #ffd400;
+  opacity: 0.075;
+  z-index: -1;
+  transform: perspective(1000px) translateY(var(--scene-y, 0px))
+    rotateY(var(--scene-angle, 0deg));
+  transform-origin: center;
+}
+.architectural-depth svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.motion-enabled .depth-card {
+  transform-style: preserve-3d;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .motion-enabled .depth-card:hover {
+    transform: perspective(950px) rotateX(var(--depth-rx, 0deg))
+      rotateY(var(--depth-ry, 0deg)) translateY(-5px);
+    box-shadow:
+      0 20px 48px #0003,
+      0 0 0 1px #ffd40025;
+  }
+  .motion-enabled .depth-card:focus-within {
+    transform: none;
+  }
+}
+.motion-enabled .hero-drawing {
+  box-shadow:
+    18px 22px 0 -8px #ffd40008,
+    36px 44px 0 -18px #ffd40005,
+    0 30px 80px #0005;
+}
+.motion-enabled .transformation-drawing {
+  box-shadow:
+    0 28px 70px #0006,
+    12px 12px 0 -6px #ffd40015;
+}
+.motion-enabled .hp-section-title,
+.motion-enabled .build-cta-title {
+  transform-origin: 50% 70%;
+}
+@media (max-width: 650px) {
+  .architectural-depth {
+    width: 85vw;
+    opacity: 0.045;
+  }
+  .motion-enabled .hero-drawing {
+    box-shadow: 0 18px 45px #0004;
+  }
+  .site-scroll-depth {
+    height: 2px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .motion-enabled .depth-card,
+  .motion-enabled .depth-card:hover,
+  .architectural-depth {
+    transform: none !important;
+    transition: none !important;
+  }
+  .site-scroll-depth {
+    display: none;
+  }
+  .architectural-depth {
+    opacity: 0.04;
+  }
+}
+body.motion-enabled { overflow-x: clip; }

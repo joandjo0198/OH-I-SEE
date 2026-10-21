@@ -1,0 +1,419 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OH I SEE Floor Plan",
+  "description": "Coordinates and nominal room spans in feet. X increases to drawing right; Y increases toward drawing bottom. World export uses metres.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "units",
+    "plot",
+    "settings",
+    "rooms",
+    "walls",
+    "openings",
+    "reviewed",
+    "title"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "units": {
+      "const": "ft"
+    },
+    "title": {
+      "type": "string",
+      "maxLength": 200
+    },
+    "source": {
+      "enum": [
+        "reference",
+        "form",
+        "upload"
+      ]
+    },
+    "reviewed": {
+      "type": "boolean"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "plot": {
+      "type": "object",
+      "properties": {
+        "width": {
+          "type": "number",
+          "minimum": 10,
+          "maximum": 300
+        },
+        "depth": {
+          "type": "number",
+          "minimum": 10,
+          "maximum": 300
+        },
+        "facing": {
+          "enum": [
+            "East",
+            "West",
+            "North",
+            "South"
+          ]
+        },
+        "roadSide": {
+          "enum": [
+            "front",
+            "rear",
+            "left",
+            "right"
+          ]
+        },
+        "setbacks": {
+          "type": "object",
+          "properties": {
+            "front": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "rear": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "left": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 300
+            },
+            "right": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 300
+            }
+          },
+          "required": [
+            "front",
+            "rear",
+            "left",
+            "right"
+          ]
+        }
+      },
+      "required": [
+        "width",
+        "depth",
+        "facing",
+        "roadSide",
+        "setbacks"
+      ]
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "externalWall": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 30
+        },
+        "internalWall": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 30
+        },
+        "wallHeight": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 30
+        },
+        "doorHeight": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 30
+        },
+        "windowSill": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 30
+        },
+        "windowHeight": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 30
+        }
+      },
+      "required": [
+        "externalWall",
+        "internalWall",
+        "wallHeight",
+        "doorHeight",
+        "windowSill",
+        "windowHeight"
+      ]
+    },
+    "rooms": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 80,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string"
+          },
+          "x": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 300
+          },
+          "y": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 300
+          },
+          "width": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 300
+          },
+          "depth": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 300
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "x",
+          "y",
+          "width",
+          "depth"
+        ]
+      }
+    },
+    "walls": {
+      "type": "array",
+      "maxItems": 600,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "axis": {
+            "enum": [
+              "h",
+              "v"
+            ]
+          },
+          "at": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 300
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 300
+          },
+          "end": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 300
+          },
+          "owners": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "external": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "axis",
+          "at",
+          "start",
+          "end",
+          "owners",
+          "external"
+        ]
+      }
+    },
+    "openings": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "wallId": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "door",
+              "main",
+              "pocket",
+              "window",
+              "vent"
+            ]
+          },
+          "offset": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 300
+          },
+          "width": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "sill": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 300
+          },
+          "height": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "wallId",
+          "kind",
+          "offset",
+          "width",
+          "sill",
+          "height"
+        ]
+      }
+    },
+    "finishes": {
+      "type": "object",
+      "maxProperties": 700,
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "color",
+          "texture"
+        ],
+        "properties": {
+          "color": {
+            "type": "string",
+            "pattern": "^#[0-9a-fA-F]{6}$"
+          },
+          "texture": {
+            "enum": [
+              "paint",
+              "wood",
+              "tile",
+              "marble",
+              "stone",
+              "brick",
+              "concrete"
+            ]
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 40
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "roughness": {
+            "type": "number",
+            "minimum": 0.1,
+            "maximum": 1
+          }
+        }
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "catalogId",
+          "category",
+          "roomId",
+          "position",
+          "rotation",
+          "scale",
+          "mount",
+          "props"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "catalogId": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "roomId": {
+            "type": "string"
+          },
+          "position": {
+            "type": "object",
+            "required": [
+              "x",
+              "y",
+              "z"
+            ],
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "z": {
+                "type": "number"
+              }
+            }
+          },
+          "rotation": {
+            "type": "number"
+          },
+          "scale": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 5
+          },
+          "mount": {
+            "enum": [
+              "floor",
+              "wall",
+              "ceiling",
+              "line"
+            ]
+          },
+          "props": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

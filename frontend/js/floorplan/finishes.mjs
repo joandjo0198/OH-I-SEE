@@ -1,0 +1,21 @@
+// Local design swatches, not manufacturer/product codes. No external texture requests.
+const colours=[['Porcelain','#F4F1E8'],['Ivory','#EDE0C8'],['Warm sand','#D7BE99'],['Greige','#B8ADA0'],['Stone grey','#929693'],['Graphite','#40484C'],['Midnight','#222C36'],['Sage','#9AAE94'],['Forest','#355B4B'],['Olive','#7D8253'],['Mint','#BDD8C8'],['Ocean','#386F82'],['Sky','#9EBED2'],['Navy','#30496C'],['Teal','#397F7B'],['Terracotta','#BE7052'],['Clay','#D69E83'],['Blush','#DDB5B2'],['Wine','#793F4C'],['Ochre','#C49A45'],['Butter','#EFDEA0'],['Lavender','#B6AAC9'],['Mushroom','#AA9787'],['White','#FFFFFF']];
+export const FINISHES=[...colours.map(([name,color],i)=>({code:`PNT-${String(i+1).padStart(3,'0')}`,name,color,texture:'paint',roughness:.8})),
+ ...[['Oak','#C49B68'],['Walnut','#76513B'],['Ash','#CFBEA3'],['Smoked oak','#777063']].map(([name,color],i)=>({code:`WD-${String(i+1).padStart(3,'0')}`,name:name+' timber',color,texture:'wood',roughness:.65})),
+ ...[['Ivory','#E1D7C2'],['Sage','#93AD9B'],['Slate','#596875'],['Terracotta','#B47156'],['Pearl','#E4E8E5'],['Ocean','#4D8292']].map(([name,color],i)=>({code:`TL-${String(i+1).padStart(3,'0')}`,name:name+' tile',color,texture:'tile',roughness:.35})),
+ ...[['Carrara','#EEECE5'],['Charcoal','#41494E'],['Rose','#D7BBB4'],['Beige','#D4C3A5']].map(([name,color],i)=>({code:`MR-${String(i+1).padStart(3,'0')}`,name:name+' marble',color,texture:'marble',roughness:.25})),
+ ...[['Limestone','#B6AE9A'],['Granite','#7C8385'],['Sandstone','#C3A47C'],['Basalt','#535C5D']].map(([name,color],i)=>({code:`ST-${String(i+1).padStart(3,'0')}`,name,color,texture:'stone',roughness:.95})),
+ ...[['Natural','#B77860'],['Whitewashed','#DED8CC'],['Charcoal','#5B5B59']].map(([name,color],i)=>({code:`BR-${String(i+1).padStart(3,'0')}`,name:name+' brick',color,texture:'brick',roughness:.9})),
+ ...[['Cloud','#C8CBC6'],['Warm','#ADA597'],['Dark','#777E7C']].map(([name,color],i)=>({code:`CN-${String(i+1).padStart(3,'0')}`,name:name+' concrete',color,texture:'concrete',roughness:.95}))];
+export const TEXTURES=['paint','wood','tile','marble','stone','brick','concrete'];
+export function normalizeFinish(value){if(!value||!/^#[0-9a-f]{6}$/i.test(value.color)||!TEXTURES.includes(value.texture))throw Error('Choose a texture and a six-digit HEX colour, such as #9AAE94.');return {code:String(value.code||'CUSTOM').slice(0,40),name:String(value.name||'Custom finish').slice(0,100),color:value.color.toUpperCase(),texture:value.texture,roughness:Math.max(.1,Math.min(1,Number(value.roughness)||.8))};}
+export function searchFinishes(query='',texture='all'){const terms=query.toLowerCase().trim().split(/\s+/).filter(Boolean);return FINISHES.filter(f=>(texture==='all'||texture===f.texture)&&terms.every(t=>`${f.name} ${f.code} ${f.color} ${f.texture}`.toLowerCase().includes(t)));}
+export function paintTexture(canvas,finish){const f=normalizeFinish(finish),c=canvas.getContext('2d'),s=canvas.width;canvas.height=s;c.fillStyle=f.color;c.fillRect(0,0,s,s);let seed=41;const random=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
+ if(f.texture==='paint')return canvas;
+ c.lineWidth=Math.max(1,s/128);
+ if(f.texture==='tile'||f.texture==='brick'){const rows=f.texture==='tile'?2:6,cols=f.texture==='tile'?2:3;for(let y=0;y<rows;y++){const shift=f.texture==='brick'&&y%2?s/cols/2:0;for(let x=-1;x<cols+1;x++){c.strokeStyle='#d3d1c6';c.lineWidth=s/90;c.strokeRect(x*s/cols+shift,y*s/rows,s/cols,s/rows);}}}
+ if(f.texture==='wood'){for(let x=0;x<s;x+=s/64){c.beginPath();c.strokeStyle=`rgba(47,28,10,${.08+random()*.2})`;c.moveTo(x,0);for(let y=0;y<=s;y+=s/16)c.lineTo(x+Math.sin(y/s*10+x)*s/80,y);c.stroke();}c.strokeStyle='#57433255';for(let x=0;x<s;x+=s/4){c.beginPath();c.moveTo(x,0);c.lineTo(x,s);c.stroke();}}
+ if(f.texture==='marble'){for(let i=0;i<9;i++){c.beginPath();c.strokeStyle=`rgba(79,85,85,${.06+random()*.17})`;c.lineWidth=1+random()*s/85;let x=random()*s;c.moveTo(x,0);for(let y=0;y<=s;y+=s/16){x+=(random()-.5)*s/4;c.lineTo(x,y);}c.stroke();}}
+ if(['stone','concrete','brick'].includes(f.texture)){for(let i=0;i<1400;i++){c.fillStyle=random()>.5?'#ffffff20':'#00000019';const r=f.texture==='stone'?1+random()*s/70:1;c.fillRect(random()*s,random()*s,r,r);}}
+ return canvas;
+}

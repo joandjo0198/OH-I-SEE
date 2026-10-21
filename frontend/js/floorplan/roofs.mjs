@@ -1,0 +1,11 @@
+// Rates are entered from supplier quotations; no market price is assumed.
+export const roofMaterials=[
+ {id:'concrete',name:'Concrete terrace system',styles:['flat'],color:'#d9d4c8',note:'Enter combined concrete, steel and waterproofing material rate.'},
+ {id:'clay',name:'Terracotta tiles',styles:['gable','mono'],color:'#a65c40',note:'Covering only; supporting frame is a separate allowance.'},
+ {id:'metal',name:'Coated metal sheets',styles:['gable','mono'],color:'#566b66',note:'Sheet covering only; add frame, fasteners and insulation separately.'},
+ {id:'shingle',name:'Roof shingles',styles:['gable','mono'],color:'#50545a',note:'Covering only; decking and underlay are separate.'}
+];
+export function roofConfig(p){const r={style:'flat',material:'concrete',pitch:25,overhang:.5,waste:10,rate:0,support:0,color:'#d9d4c8',...p.roof};if(!['flat','gable','mono'].includes(r.style)||!roofMaterials.some(m=>m.id===r.material&&m.styles.includes(r.style)))throw Error('Choose a compatible roof shape and material.');for(const [key,min,max]of [['pitch',5,45],['overhang',0,3],['waste',0,30],['rate',0,10000],['support',0,10000000]])if(!Number.isFinite(r[key])||r[key]<min||r[key]>max)throw Error('Invalid roof '+key);if(!/^#[0-9a-f]{6}$/i.test(r.color))throw Error('Use a HEX roof colour.');return r;}
+export function roofBounds(p){const rooms=p.rooms.filter(r=>!['stairs','sitout','porch'].includes(r.type));const list=rooms.length?rooms:p.rooms;const x=Math.min(...list.map(r=>r.x)),y=Math.min(...list.map(r=>r.y));return {x,y,width:Math.max(...list.map(r=>r.x+r.width))-x,depth:Math.max(...list.map(r=>r.y+r.depth))-y};}
+export function roofEstimate(p){const r=roofConfig(p),b=roofBounds(p);const x=Math.max(0,b.x-r.overhang),y=Math.max(0,b.y-r.overhang),width=Math.min(p.plot.width,b.x+b.width+r.overhang)-x,depth=Math.min(p.plot.depth,b.y+b.depth+r.overhang)-y;const footprint=width*depth,surface=footprint/(r.style==='flat'?1:Math.cos(r.pitch*Math.PI/180)),quantity=surface*(1+r.waste/100);return {...r,x,y,width,depth,footprint,surface,quantity,total:quantity*r.rate+r.support,quoted:r.rate>0};}
+export function suggestRoof(p,priority){return priority==='rain'?{style:'gable',material:'clay',color:'#a65c40'}:priority==='lightweight'?{style:'mono',material:'metal',color:'#566b66'}:{style:'flat',material:'concrete',color:'#d9d4c8'};}

@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {referencePlan} from '../../frontend/js/floorplan/model.mjs';
+import {roofConfig,roofEstimate,suggestRoof} from '../../frontend/js/floorplan/roofs.mjs';
+import {buildModel} from '../../frontend/js/floorplan/viewer.mjs';
+import {referenceStyle} from '../../frontend/js/floorplan/interior/reference-style.mjs';
+import {validateFixtures} from '../../frontend/js/floorplan/interior/fixture-model.mjs';
+test('pitched roof material quantity uses slope, waste and entered rates; porch excluded',()=>{const p=referencePlan();p.roof={style:'gable',material:'clay',pitch:30,overhang:0,waste:10,rate:100,support:2000};const e=roofEstimate(p);assert.ok(e.footprint<1400);assert.ok(Math.abs(e.surface-e.footprint/Math.cos(Math.PI/6))<1e-8);assert.equal(e.total,e.surface*1.1*100+2000);assert.deepEqual(roofEstimate(JSON.parse(JSON.stringify(p))),e);});
+test('roof options validate dangerous values and keep unknown prices explicit',()=>{const p=referencePlan();assert.equal(roofEstimate(p).quoted,false);for(const roof of [{pitch:NaN},{rate:-1},{overhang:100},{style:'gable',material:'concrete'},{color:'url(evil)'}])assert.throws(()=>roofConfig({...p,roof}));for(const priority of ['rain','terrace','lightweight'])assert.doesNotThrow(()=>roofConfig({...p,roof:suggestRoof(p,priority)}));});
+test('all roof shapes are exportable finite geometry without changing placed fixtures',()=>{for(const priority of ['rain','terrace','lightweight']){const p=referencePlan();p.roof=suggestRoof(p,priority);const {model,roof}=buildModel(p);assert.ok(roof.children.length>0);roof.traverse(o=>{if(o.isMesh)assert.ok([...o.geometry.attributes.position.array].every(Number.isFinite));});assert.ok(model.getObjectByName('Placed fixtures'));}});
+test('reference furnishing adds editable items once and keeps existing products',()=>{const p=referencePlan(),r=p.rooms.find(r=>r.type==='living');const additions=referenceStyle(p,r.id);assert.ok(additions.length>=10);p.fixtures=additions;assert.deepEqual(validateFixtures(p),[]);assert.equal(referenceStyle(p,r.id).length,0);assert.ok(additions.some(f=>f.catalogId==='sofa'&&f.props.color==='#e5dfd2'));assert.throws(()=>referenceStyle(p,p.rooms.find(r=>r.type==='bathroom').id));});

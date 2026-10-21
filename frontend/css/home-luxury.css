@@ -1,0 +1,79 @@
+/* Architectural background with independent, live hero content. */
+.hero-clean-motion{position:absolute;inset:0;width:100%;height:100%;display:block;pointer-events:none;transform-origin:75% 50%;animation:hero-camera-drift 18s ease-in-out infinite alternate;animation-play-state:paused}
+.hero-service-flow{stroke-width:2.5;stroke-dasharray:18 110;animation:hero-service-travel 4s linear infinite;animation-play-state:paused}
+.hero-service-electric{stroke:#fff4a1}.hero-service-water{stroke:#c2f8ff;animation-duration:3s}.hero-service-hot{stroke:#ffcec4;animation-direction:reverse;animation-duration:3.5s}
+.hero-service-pulse{animation:hero-service-beacon 3s ease-in-out infinite;animation-play-state:paused}
+.hero-clean-motion.is-running,.hero-clean-motion.is-running .hero-service-flow,.hero-clean-motion.is-running .hero-service-pulse{animation-play-state:running}
+@keyframes hero-camera-drift{from{transform:scale(1)}to{transform:scale(1.035)}}
+@keyframes hero-service-travel{to{stroke-dashoffset:-256}}
+@keyframes hero-service-beacon{0%,100%{opacity:.2}50%{opacity:.95}}
+#hero-scroll{--hero-header:72px;--hero-bottom:0px;height:auto;background:#071119}
+#hero-scroll #hero.hero-image-only{position:relative;top:0;height:calc(100svh - var(--hero-header) - var(--hero-bottom));min-height:0;margin:0;padding:0;overflow:hidden;isolation:isolate;background:#071119}
+.hero-clean-background{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;display:block}
+.hero-copy-scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#03090e38,transparent 60%)}
+.hero-copy-wrapper{position:absolute;inset:0;overflow:hidden;color:#f8fafb}
+#hero-heading{margin:0;font:inherit}
+.hero-enter{position:absolute;left:6.7%;margin:0;transform:none;opacity:1;filter:none}
+.hero-copy-badge{top:15.3%;display:flex;align-items:center;gap:10px;padding:10px 18px;border:1px solid #ffd400a6;border-radius:40px;background:#14232c80;color:#ffd400;font-size:clamp(9px,.75vw,14px);line-height:1.25;letter-spacing:1.2px;font-weight:700;white-space:nowrap}
+.hero-copy-badge>span{font-size:11px}
+.hero-copy-title,.hero-copy-accent{display:block;white-space:nowrap;font-size:clamp(32px,5vw,96px);font-weight:800;line-height:1.04;letter-spacing:-1.6px;text-shadow:0 2px 18px #0003}
+.hero-copy-title{top:23.6%;color:#fff}
+.hero-copy-accent{top:35.2%;color:#ffd400}
+.hero-copy-tagline{top:48%;font-size:clamp(10px,1vw,19px);font-weight:700;letter-spacing:3px;line-height:1.4;color:#f4d876;white-space:nowrap}
+.hero-copy-description{top:54.6%;width:39%;font-size:clamp(12px,1.08vw,21px);line-height:1.5;font-weight:400;color:#ecf0f0;text-shadow:0 2px 8px #0009}
+.hero-copy-buttons{width:31%;height:7.8%;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.hero-copy-primary{top:65%}.hero-copy-secondary{top:74.44%}
+#hero .hero-copy-buttons :is(button,a){display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;min-width:0;padding:8px;border-radius:5px;border:1px solid #ffd400;background:#ffd400;color:#090d12;text-decoration:none;font:700 clamp(10px,.85vw,16px)/1.2 Arial,sans-serif;letter-spacing:.7px;cursor:pointer;box-shadow:0 4px 18px #0002}
+#hero .hero-copy-secondary a{background:#09131cc7;border-color:#c4d4dd38;color:#f3f5f6;backdrop-filter:blur(6px)}
+#hero .hero-copy-buttons :is(button,a):hover{filter:brightness(1.08)}
+#hero .hero-copy-buttons :is(button,a):focus-visible{outline:3px solid white;outline-offset:3px}
+.hero-copy-statistics{top:85.2%;width:40.8%;height:14%;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));align-items:center;padding:10px 20px;border:1px solid #c4d4dd30;border-radius:5px;background:#09151bc4;backdrop-filter:blur(7px)}
+.hero-copy-statistics>div{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+.hero-copy-statistics strong{font-size:clamp(20px,1.6vw,31px);line-height:1.1;letter-spacing:-1px;color:#ffd400}
+.hero-copy-statistics span{font-size:clamp(8px,.65vw,12px);letter-spacing:1px;white-space:nowrap;color:#e8eeee}
+body.home-dark{overflow-x:clip}
+@media(min-width:651px) and (max-width:1279px){body.home-dark .header-nav{display:none!important}body.home-dark .mobile-menu-toggle{display:block!important}body.home-dark .header-search{flex:1;min-width:0;max-width:350px}.hero-copy-description{width:44%}.hero-desktop-break{display:none}.hero-copy-tagline{letter-spacing:1px}.hero-copy-buttons{width:38%}.hero-copy-statistics{width:45%}}
+@media(max-width:650px){
+ #hero-scroll{--hero-bottom:60px}
+ .hero-enter{left:5%;max-width:90%}
+ .hero-copy-scrim{background:linear-gradient(90deg,#03090eb8,#03090e35)}
+ .hero-copy-badge{top:8%;font-size:8px;letter-spacing:.5px;padding:8px 10px}
+ .hero-copy-title,.hero-copy-accent{font-size:clamp(24px,7.3vw,43px);letter-spacing:-.8px;line-height:1.1}
+ .hero-copy-title{top:18%}.hero-copy-accent{top:25%}
+ .hero-copy-tagline{top:34%;font-size:8px;letter-spacing:.5px;white-space:normal}
+ .hero-copy-description{top:41%;width:88%;font-size:12px;line-height:1.6}.hero-desktop-break{display:none}
+ .hero-copy-buttons{width:90%;height:8%;gap:8px}.hero-copy-primary{top:59%}.hero-copy-secondary{top:69%}
+ #hero .hero-copy-buttons :is(button,a){font-size:9px;letter-spacing:.2px;gap:6px}
+ .hero-copy-statistics{top:81%;width:90%;height:15%;padding:8px}.hero-copy-statistics strong{font-size:21px}.hero-copy-statistics span{font-size:7px;letter-spacing:.3px}
+}
+@media(prefers-reduced-motion:reduce){.hero-enter{transform:none!important;opacity:1!important;filter:none!important}}
+/* Show the architectural scene immediately so the old loader cannot cover the entrance. */
+body.home-dark .page-loader{display:none}
+
+/* One full-bleed scene: no unrelated photo strips beside the animation. */
+.hero-construction-film{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center top;opacity:0;pointer-events:none;transition:opacity .65s ease;background:transparent}
+.hero-construction-film.is-playing{opacity:1}
+#hero .hero-film-control{position:absolute;top:18px;right:24px;z-index:4;padding:9px 14px;border:1px solid #ffd40080;border-radius:6px;background:#071119d9;color:#ffd400;font:600 12px/1.4 Arial,sans-serif;cursor:pointer;backdrop-filter:blur(8px)}
+#hero .hero-film-control:focus-visible{outline:2px solid white;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.hero-construction-film{transition:none}}
+
+.hero-clean-background{object-fit:cover;object-position:center center;transition:opacity .3s}
+#hero:has(.hero-construction-film.is-playing) .hero-clean-background{opacity:0}
+#hero:has(.hero-construction-film.is-playing) .hero-copy-scrim{background:linear-gradient(90deg,rgba(3,9,14,.8) 0%,rgba(3,9,14,.55) 32%,rgba(3,9,14,.15) 62%,transparent 85%)}
+@media(min-width:1280px){.hero-copy-title,.hero-copy-accent{font-size:clamp(48px,4.65vw,88px)}.hero-copy-description{max-width:690px}.hero-copy-statistics{max-width:760px}}
+/* Keep the prepared 42% text-safe area aligned at narrow widths. */
+@media(max-width:650px){.hero-construction-film{object-position:62% center}#hero:has(.hero-construction-film.is-playing) .hero-copy-scrim{background:linear-gradient(90deg,#03090ed9,#03090e80)}#hero .hero-film-control{top:10px;right:12px;font-size:10px;padding:7px 10px}}
+
+/* Contain the entire image so responsive viewports cannot clip callout text. */
+.hero-construction-film{object-fit:contain;object-position:center center;background:#0c151c}
+@media(max-width:650px){.hero-construction-film{object-fit:contain;object-position:center 14%;background:#0c151c}}
+
+/* Prepared safe area for live copy; preserve the building's aspect ratio. */
+.hero-construction-film,.hero-clean-background{object-fit:cover;object-position:right center;background:#0a1119}
+#hero .hero-copy-scrim,#hero:has(.hero-construction-film.is-playing) .hero-copy-scrim{background:linear-gradient(90deg,#03090ef5 0%,#03090ed9 30%,#03090e80 48%,transparent 67%)}
+@media(max-width:650px){
+ .hero-construction-film,.hero-clean-background{object-position:76% center}
+ #hero .hero-copy-scrim,#hero:has(.hero-construction-film.is-playing) .hero-copy-scrim{background:linear-gradient(90deg,#03090ee6,#03090e70)}
+}
+
+@media(min-width:651px){.hero-copy-description{width:43%;max-width:800px;font-size:clamp(12px,1vw,20px);line-height:1.45}.hero-desktop-break{display:none}}

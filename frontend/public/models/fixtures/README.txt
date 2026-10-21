@@ -1,0 +1,1 @@
+Original OH I SEE procedural geometry. OBJ files use metres and contain static geometry. The studio uses the same procedural source with materials, working lights and animated fan blades. Regenerate using node frontend/scripts/export-fixture-obj.mjs.

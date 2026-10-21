@@ -1,0 +1,92 @@
+[
+  {
+    "file": "frontend/public/images/home-design/materials/wood-color.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_floor/wood_floor_diff_1k.jpg",
+    "license": "CC0-1.0",
+    "sourceMd5": "b7e927d2bf2f8f103820ff3890c8407c",
+    "deliveredBytes": 55528,
+    "deliveredSha256": "2168f0b8a5bc4f4bf536eb692b9c78aabdfbce69e7ebe27a1bdcbda38e413c51",
+    "processing": "Resized to 512 by 512 pixels; JPEG encoding"
+  },
+  {
+    "file": "frontend/public/images/home-design/materials/wood-normal.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_floor/wood_floor_nor_gl_1k.jpg",
+    "license": "CC0-1.0",
+    "sourceMd5": "620f174d2c09b579c5d02d37b2106668",
+    "deliveredBytes": 13747,
+    "deliveredSha256": "31ea36d226a070c2eeada1b7320dd4b6b39a058b2738643a467bf88285cfd7b5",
+    "processing": "Resized to 512 by 512 pixels; JPEG encoding"
+  },
+  {
+    "file": "frontend/public/images/home-design/materials/wood-roughness.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/wood_floor/wood_floor_rough_1k.jpg",
+    "license": "CC0-1.0",
+    "sourceMd5": "36146634f1dbd1bc30cd071857584c10",
+    "deliveredBytes": 39221,
+    "deliveredSha256": "74728beb9fd1f4a5e96c3531f9ceaa385cc846e8898c6c5c061e350b16b9f787",
+    "processing": "Resized to 512 by 512 pixels; JPEG encoding"
+  },
+  {
+    "file": "frontend/public/images/home-design/materials/stone-color.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_tiles/stone_tiles_diff_1k.jpg",
+    "license": "CC0-1.0",
+    "sourceMd5": "2ee931a368a415f5cc2e916171e19bdf",
+    "deliveredBytes": 62699,
+    "deliveredSha256": "b18b80f6425a3353b426ba25b3f9a595291f7ca427e267d39691ba36ba197f4c",
+    "processing": "Resized to 512 by 512 pixels; JPEG encoding"
+  },
+  {
+    "file": "frontend/public/images/home-design/materials/stone-normal.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_tiles/stone_tiles_nor_gl_1k.jpg",
+    "license": "CC0-1.0",
+    "sourceMd5": "848f293b903096edaf4aae988c5a174f",
+    "deliveredBytes": 47186,
+    "deliveredSha256": "c3e4ebcfb57422a70baf854e636a1bfc1f4443038485bc1b37f257d9aff72885",
+    "processing": "Resized to 512 by 512 pixels; JPEG encoding"
+  },
+  {
+    "file": "frontend/public/images/home-design/materials/stone-roughness.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/stone_tiles/stone_tiles_rough_1k.jpg",
+    "license": "CC0-1.0",
+    "sourceMd5": "d4119c754b8890a203ffcdf8acb2f70d",
+    "deliveredBytes": 83856,
+    "deliveredSha256": "f24c8c636ca648a0827fbeacde25111490bb94204231f04e229eef3195700978",
+    "processing": "Resized to 512 by 512 pixels; JPEG encoding"
+  },
+  {
+    "file": "frontend/public/images/home-design/materials/concrete-color.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_floor_02/concrete_floor_02_diff_1k.jpg",
+    "license": "CC0-1.0",
+    "sourceMd5": "1cfee53d2f82fa59726ab7ae6a2e8c09",
+    "deliveredBytes": 117945,
+    "deliveredSha256": "53213b6ade2dea3f42fea435bdda3073b827336016bdaa6488c55066465c0397",
+    "processing": "Resized to 512 by 512 pixels; JPEG encoding"
+  },
+  {
+    "file": "frontend/public/images/home-design/materials/concrete-normal.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_floor_02/concrete_floor_02_nor_gl_1k.jpg",
+    "license": "CC0-1.0",
+    "sourceMd5": "c2065fd81f571f4e39163ea5661128fb",
+    "deliveredBytes": 43740,
+    "deliveredSha256": "b61f6307d2fdb090bf98a13a651cf355c7c020fcd77d0f5eb73800318b1319cf",
+    "processing": "Resized to 512 by 512 pixels; JPEG encoding"
+  },
+  {
+    "file": "frontend/public/images/home-design/materials/concrete-roughness.jpg",
+    "source": "https://dl.polyhaven.org/file/ph-assets/Textures/jpg/1k/concrete_floor_02/concrete_floor_02_rough_1k.jpg",
+    "license": "CC0-1.0",
+    "sourceMd5": "653d60d0db1872a49138455cf31c8326",
+    "deliveredBytes": 49984,
+    "deliveredSha256": "7d287ffef640212957cf8cbe0034041e4f4e46b680b394c2761d7ed8e92f79f5",
+    "processing": "Resized to 512 by 512 pixels; JPEG encoding"
+  },
+  {
+    "file": "frontend/public/images/home-design/materials/sky.hdr",
+    "source": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/kloofendal_48d_partly_cloudy_puresky_1k.hdr",
+    "license": "CC0-1.0",
+    "sourceMd5": "c69498687e876bf68d2a8b8a62234eb9",
+    "deliveredBytes": 1435119,
+    "deliveredSha256": "fd94c84997b8a3c353b62c2125a9b44e19509956986a126e472684432a02d798",
+    "processing": "Original 1k HDR"
+  }
+]

@@ -1,0 +1,994 @@
+{
+  "schemaVersion": 1,
+  "title": "East Facing House Plan",
+  "units": "ft",
+  "source": "reference",
+  "plot": {
+    "width": 32,
+    "depth": 55,
+    "facing": "East",
+    "roadSide": "front",
+    "setbacks": {
+      "left": 3.5,
+      "right": 3.5,
+      "front": 6.5,
+      "rear": 3.5
+    }
+  },
+  "settings": {
+    "externalWall": 0.75,
+    "internalWall": 0.375,
+    "wallHeight": 10,
+    "doorHeight": 7,
+    "windowSill": 3,
+    "windowHeight": 4
+  },
+  "rooms": [
+    {
+      "id": "master",
+      "name": "Master bedroom",
+      "type": "bedroom",
+      "x": 3.875,
+      "y": 4,
+      "width": 11.25,
+      "depth": 20
+    },
+    {
+      "id": "common",
+      "name": "Common toilet",
+      "type": "bathroom",
+      "x": 3.875,
+      "y": 24.375,
+      "width": 6.5,
+      "depth": 4
+    },
+    {
+      "id": "dress1",
+      "name": "Dressing",
+      "type": "dressing",
+      "x": 10.75,
+      "y": 24.375,
+      "width": 4.25,
+      "depth": 4
+    },
+    {
+      "id": "attached",
+      "name": "Attached toilet",
+      "type": "bathroom",
+      "x": 16.125,
+      "y": 4,
+      "width": 6.5,
+      "depth": 4
+    },
+    {
+      "id": "dress2",
+      "name": "Dressing",
+      "type": "dressing",
+      "x": 23,
+      "y": 4,
+      "width": 4.5,
+      "depth": 4
+    },
+    {
+      "id": "kids",
+      "name": "Kid’s bedroom",
+      "type": "bedroom",
+      "x": 16.125,
+      "y": 8.375,
+      "width": 11.5,
+      "depth": 11
+    },
+    {
+      "id": "passage",
+      "name": "Passage",
+      "type": "corridor",
+      "x": 16.125,
+      "y": 19.75,
+      "width": 6,
+      "depth": 7.5
+    },
+    {
+      "id": "puja",
+      "name": "Puja",
+      "type": "puja",
+      "x": 22.5,
+      "y": 19.75,
+      "width": 5,
+      "depth": 7
+    },
+    {
+      "id": "dining",
+      "name": "Dining",
+      "type": "dining",
+      "x": 3.875,
+      "y": 29,
+      "width": 12,
+      "depth": 8
+    },
+    {
+      "id": "living",
+      "name": "Living room",
+      "type": "living",
+      "x": 16.25,
+      "y": 28.125,
+      "width": 11.5,
+      "depth": 9.25
+    },
+    {
+      "id": "kitchen",
+      "name": "Kitchen",
+      "type": "kitchen",
+      "x": 3.875,
+      "y": 37.75,
+      "width": 11.25,
+      "depth": 10
+    },
+    {
+      "id": "drawing",
+      "name": "Drawing room",
+      "type": "drawing",
+      "x": 16.25,
+      "y": 37.75,
+      "width": 11.5,
+      "depth": 10
+    },
+    {
+      "id": "porch",
+      "name": "Sitout",
+      "type": "porch",
+      "x": 0.5,
+      "y": 48.5,
+      "width": 31,
+      "depth": 6.5
+    },
+    {
+      "id": "stairs",
+      "name": "Outside staircase",
+      "type": "stairs",
+      "x": 0.25,
+      "y": 4,
+      "width": 2.75,
+      "depth": 14
+    }
+  ],
+  "walls": [
+    {
+      "id": "wall-0",
+      "axis": "h",
+      "at": 4,
+      "start": 3.875,
+      "end": 15.125,
+      "owners": [
+        "master"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-1",
+      "axis": "h",
+      "at": 4,
+      "start": 16.125,
+      "end": 22.625,
+      "owners": [
+        "attached"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-2",
+      "axis": "h",
+      "at": 4,
+      "start": 23,
+      "end": 27.5,
+      "owners": [
+        "dress2"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-3",
+      "axis": "h",
+      "at": 24,
+      "start": 3.875,
+      "end": 15.125,
+      "owners": [
+        "master"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-4",
+      "axis": "v",
+      "at": 3.875,
+      "start": 4,
+      "end": 24,
+      "owners": [
+        "master"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-5",
+      "axis": "v",
+      "at": 3.875,
+      "start": 24.375,
+      "end": 28.375,
+      "owners": [
+        "common"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-6",
+      "axis": "v",
+      "at": 3.875,
+      "start": 29,
+      "end": 37,
+      "owners": [
+        "dining"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-7",
+      "axis": "v",
+      "at": 3.875,
+      "start": 37.75,
+      "end": 47.75,
+      "owners": [
+        "kitchen"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-8",
+      "axis": "v",
+      "at": 15.125,
+      "start": 4,
+      "end": 24,
+      "owners": [
+        "master"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-9",
+      "axis": "v",
+      "at": 15.125,
+      "start": 37.75,
+      "end": 47.75,
+      "owners": [
+        "kitchen"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-10",
+      "axis": "h",
+      "at": 24.375,
+      "start": 3.875,
+      "end": 10.375,
+      "owners": [
+        "common"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-11",
+      "axis": "h",
+      "at": 24.375,
+      "start": 10.75,
+      "end": 15,
+      "owners": [
+        "dress1"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-12",
+      "axis": "h",
+      "at": 28.375,
+      "start": 3.875,
+      "end": 10.375,
+      "owners": [
+        "common"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-13",
+      "axis": "h",
+      "at": 28.375,
+      "start": 10.75,
+      "end": 15,
+      "owners": [
+        "dress1"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-14",
+      "axis": "v",
+      "at": 10.375,
+      "start": 24.375,
+      "end": 28.375,
+      "owners": [
+        "common"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-15",
+      "axis": "v",
+      "at": 10.75,
+      "start": 24.375,
+      "end": 28.375,
+      "owners": [
+        "dress1"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-16",
+      "axis": "v",
+      "at": 15,
+      "start": 24.375,
+      "end": 28.375,
+      "owners": [
+        "dress1"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-17",
+      "axis": "h",
+      "at": 8,
+      "start": 16.125,
+      "end": 22.625,
+      "owners": [
+        "attached"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-18",
+      "axis": "h",
+      "at": 8,
+      "start": 23,
+      "end": 27.5,
+      "owners": [
+        "dress2"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-19",
+      "axis": "v",
+      "at": 16.125,
+      "start": 4,
+      "end": 8,
+      "owners": [
+        "attached"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-20",
+      "axis": "v",
+      "at": 16.125,
+      "start": 8.375,
+      "end": 19.375,
+      "owners": [
+        "kids"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-21",
+      "axis": "v",
+      "at": 16.125,
+      "start": 19.75,
+      "end": 27.25,
+      "owners": [
+        "passage"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-22",
+      "axis": "v",
+      "at": 22.625,
+      "start": 4,
+      "end": 8,
+      "owners": [
+        "attached"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-23",
+      "axis": "v",
+      "at": 23,
+      "start": 4,
+      "end": 8,
+      "owners": [
+        "dress2"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-24",
+      "axis": "v",
+      "at": 27.5,
+      "start": 4,
+      "end": 8,
+      "owners": [
+        "dress2"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-25",
+      "axis": "v",
+      "at": 27.5,
+      "start": 19.75,
+      "end": 26.75,
+      "owners": [
+        "puja"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-26",
+      "axis": "h",
+      "at": 8.375,
+      "start": 16.125,
+      "end": 27.625,
+      "owners": [
+        "kids"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-27",
+      "axis": "h",
+      "at": 19.375,
+      "start": 16.125,
+      "end": 27.625,
+      "owners": [
+        "kids"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-28",
+      "axis": "v",
+      "at": 27.625,
+      "start": 8.375,
+      "end": 19.375,
+      "owners": [
+        "kids"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-29",
+      "axis": "h",
+      "at": 19.75,
+      "start": 16.125,
+      "end": 22.125,
+      "owners": [
+        "passage"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-30",
+      "axis": "h",
+      "at": 19.75,
+      "start": 22.5,
+      "end": 27.5,
+      "owners": [
+        "puja"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-31",
+      "axis": "h",
+      "at": 27.25,
+      "start": 16.125,
+      "end": 22.125,
+      "owners": [
+        "passage"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-32",
+      "axis": "v",
+      "at": 22.125,
+      "start": 19.75,
+      "end": 27.25,
+      "owners": [
+        "passage"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-33",
+      "axis": "h",
+      "at": 26.75,
+      "start": 22.5,
+      "end": 27.5,
+      "owners": [
+        "puja"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-34",
+      "axis": "v",
+      "at": 22.5,
+      "start": 19.75,
+      "end": 26.75,
+      "owners": [
+        "puja"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-35",
+      "axis": "h",
+      "at": 29,
+      "start": 3.875,
+      "end": 15.875,
+      "owners": [
+        "dining"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-36",
+      "axis": "h",
+      "at": 37,
+      "start": 3.875,
+      "end": 15.875,
+      "owners": [
+        "dining"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-37",
+      "axis": "v",
+      "at": 15.875,
+      "start": 29,
+      "end": 37,
+      "owners": [
+        "dining"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-38",
+      "axis": "h",
+      "at": 28.125,
+      "start": 16.25,
+      "end": 27.75,
+      "owners": [
+        "living"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-39",
+      "axis": "h",
+      "at": 37.375,
+      "start": 16.25,
+      "end": 27.75,
+      "owners": [
+        "living"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-40",
+      "axis": "v",
+      "at": 16.25,
+      "start": 28.125,
+      "end": 37.375,
+      "owners": [
+        "living"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-41",
+      "axis": "v",
+      "at": 16.25,
+      "start": 37.75,
+      "end": 47.75,
+      "owners": [
+        "drawing"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-42",
+      "axis": "v",
+      "at": 27.75,
+      "start": 28.125,
+      "end": 37.375,
+      "owners": [
+        "living"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-43",
+      "axis": "v",
+      "at": 27.75,
+      "start": 37.75,
+      "end": 47.75,
+      "owners": [
+        "drawing"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-44",
+      "axis": "h",
+      "at": 37.75,
+      "start": 3.875,
+      "end": 15.125,
+      "owners": [
+        "kitchen"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-45",
+      "axis": "h",
+      "at": 37.75,
+      "start": 16.25,
+      "end": 27.75,
+      "owners": [
+        "drawing"
+      ],
+      "external": false
+    },
+    {
+      "id": "wall-46",
+      "axis": "h",
+      "at": 47.75,
+      "start": 3.875,
+      "end": 15.125,
+      "owners": [
+        "kitchen"
+      ],
+      "external": true
+    },
+    {
+      "id": "wall-47",
+      "axis": "h",
+      "at": 47.75,
+      "start": 16.25,
+      "end": 27.75,
+      "owners": [
+        "drawing"
+      ],
+      "external": true
+    }
+  ],
+  "openings": [
+    {
+      "id": "opening-1",
+      "wallId": "wall-0",
+      "kind": "window",
+      "offset": 4.125,
+      "width": 3,
+      "sill": 3,
+      "height": 4
+    },
+    {
+      "id": "opening-3",
+      "wallId": "wall-5",
+      "kind": "vent",
+      "offset": 1.25,
+      "width": 1.5,
+      "sill": 7,
+      "height": 1.5
+    },
+    {
+      "id": "opening-6",
+      "wallId": "wall-1",
+      "kind": "vent",
+      "offset": 2.5,
+      "width": 1.5,
+      "sill": 7,
+      "height": 1.5
+    },
+    {
+      "id": "opening-8",
+      "wallId": "wall-2",
+      "kind": "window",
+      "offset": 0.75,
+      "width": 3,
+      "sill": 3,
+      "height": 4
+    },
+    {
+      "id": "opening-10",
+      "wallId": "wall-28",
+      "kind": "window",
+      "offset": 4,
+      "width": 3,
+      "sill": 3,
+      "height": 4
+    },
+    {
+      "id": "opening-14",
+      "wallId": "wall-6",
+      "kind": "window",
+      "offset": 2.5,
+      "width": 3,
+      "sill": 3,
+      "height": 4
+    },
+    {
+      "id": "opening-16",
+      "wallId": "wall-42",
+      "kind": "window",
+      "offset": 3.125,
+      "width": 3,
+      "sill": 3,
+      "height": 4
+    },
+    {
+      "id": "opening-18",
+      "wallId": "wall-7",
+      "kind": "window",
+      "offset": 3.5,
+      "width": 3,
+      "sill": 3,
+      "height": 4
+    },
+    {
+      "id": "opening-20",
+      "wallId": "wall-43",
+      "kind": "window",
+      "offset": 3.5,
+      "width": 3,
+      "sill": 3,
+      "height": 4
+    },
+    {
+      "id": "reference-master-bottom-9",
+      "wallId": "wall-3",
+      "kind": "door",
+      "offset": 2,
+      "width": 2.25,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-common-top-10",
+      "wallId": "wall-10",
+      "kind": "door",
+      "offset": 2,
+      "width": 2.25,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-master-bottom-11",
+      "wallId": "wall-3",
+      "kind": "door",
+      "offset": 7.925000000000001,
+      "width": 2,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-dress1-top-12",
+      "wallId": "wall-11",
+      "kind": "door",
+      "offset": 1.0500000000000007,
+      "width": 2,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-kids-top-13",
+      "wallId": "wall-26",
+      "kind": "door",
+      "offset": 2.75,
+      "width": 2.25,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-attached-bottom-14",
+      "wallId": "wall-17",
+      "kind": "door",
+      "offset": 2.75,
+      "width": 2.25,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-kids-top-15",
+      "wallId": "wall-26",
+      "kind": "door",
+      "offset": 7.875,
+      "width": 2,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-dress2-bottom-16",
+      "wallId": "wall-18",
+      "kind": "door",
+      "offset": 1,
+      "width": 2,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-kids-bottom-17",
+      "wallId": "wall-27",
+      "kind": "door",
+      "offset": 1.5,
+      "width": 2.75,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-passage-top-18",
+      "wallId": "wall-29",
+      "kind": "door",
+      "offset": 1.5,
+      "width": 2.75,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-master-right-19",
+      "wallId": "wall-8",
+      "kind": "door",
+      "offset": 17.125,
+      "width": 2.75,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-passage-left-20",
+      "wallId": "wall-21",
+      "kind": "door",
+      "offset": 1.375,
+      "width": 2.75,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-passage-bottom-21",
+      "wallId": "wall-31",
+      "kind": "door",
+      "offset": 1.5,
+      "width": 2.75,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-living-top-22",
+      "wallId": "wall-38",
+      "kind": "door",
+      "offset": 1.375,
+      "width": 2.75,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-kitchen-top-23",
+      "wallId": "wall-44",
+      "kind": "door",
+      "offset": 6.625,
+      "width": 3,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-dining-bottom-24",
+      "wallId": "wall-36",
+      "kind": "door",
+      "offset": 6.625,
+      "width": 3,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-dining-right-25",
+      "wallId": "wall-37",
+      "kind": "door",
+      "offset": 2.5,
+      "width": 3,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-living-left-26",
+      "wallId": "wall-40",
+      "kind": "door",
+      "offset": 3.375,
+      "width": 3,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-drawing-top-27",
+      "wallId": "wall-45",
+      "kind": "door",
+      "offset": 2.25,
+      "width": 3,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-living-bottom-28",
+      "wallId": "wall-39",
+      "kind": "door",
+      "offset": 2.25,
+      "width": 3,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-puja-left-29",
+      "wallId": "wall-34",
+      "kind": "pocket",
+      "offset": 2,
+      "width": 2.5,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-passage-right-30",
+      "wallId": "wall-32",
+      "kind": "pocket",
+      "offset": 2,
+      "width": 2.5,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-drawing-bottom-31",
+      "wallId": "wall-47",
+      "kind": "main",
+      "offset": 5,
+      "width": 3.5,
+      "sill": 0,
+      "height": 7
+    },
+    {
+      "id": "reference-living-right-32",
+      "wallId": "wall-42",
+      "kind": "main",
+      "offset": 3.375,
+      "width": 3,
+      "sill": 0,
+      "height": 7
+    }
+  ],
+  "warnings": [
+    "Reference dimensions are nominal room spans. They are preserved, not reduced to force a fit; wall finishes reduce clear space.",
+    "The 31 ft sitout and outside staircase occupy setback areas. Their placement requires review.",
+    "The source does not dimension every wall or opening. Opening positions and unlabelled gaps are editable interpretations, not surveyed measurements."
+  ],
+  "reviewed": false,
+  "gate": {
+    "side": "front",
+    "offset": 17.6,
+    "width": 5
+  }
+}
