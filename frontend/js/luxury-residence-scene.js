@@ -16,7 +16,7 @@ import {
 const smooth = (p, a, b) => T.MathUtils.smoothstep(p, a, b);
 /** Procedural model adapter. A future validated GLB can replace this factory
  * while retaining render(progress), resize and dispose as the controller contract. */
-export async function createLuxuryResidence(host, { fixedConstruction = false } = {}) {
+export async function createLuxuryResidence(host) {
   const renderer = new T.WebGLRenderer({
     alpha: true,
     antialias: true,
@@ -341,51 +341,6 @@ export async function createLuxuryResidence(host, { fixedConstruction = false } 
   for(const key of ['ground','upper','slab','balcony','stairs','roof','columns'])groups[key].traverse(o=>{
     if(!o.isMesh)return;const edges=new T.EdgesGeometry(o.geometry,28);resources.push(edges);const lines=new T.LineSegments(edges,outlineMaterial);lines.name='Structural_edges';o.add(lines);
   });
-  if (fixedConstruction) {
-    groups.services=new T.Group(); residence.add(groups.services);
-    for (const [x,color] of [[11.55,0x62c6ee],[11.70,0xffc76a]]) {
-      const path=new T.CurvePath();
-      const points=[new T.Vector3(x,.2,12.6),new T.Vector3(x,3.1,12.6),new T.Vector3(3,3.1,12.6)];
-      for(let i=1;i<points.length;i++)path.add(new T.LineCurve3(points[i-1],points[i]));
-      const geometry=new T.TubeGeometry(path,24,.028,6,false);resources.push(geometry);
-      groups.services.add(new T.Mesh(geometry,new T.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.25})));
-    }
-  }
-  const constructionParts = [];
-  const phases = {base:[.04,.15],columns:[.15,.30],ground:[.25,.42],slab:[.42,.50],upper:[.50,.65],stairs:[.60,.70],balcony:[.65,.75],roof:[.75,.83],glass:[.83,.90],furniture:[.86,.94],finish:[.90,.98],lighting:[.95,1],services:[.80,.88]};
-  if (fixedConstruction) {
-    drawing.group.visible = drawing.floors.visible = false;
-    for (const [name, group] of Object.entries(groups)) {
-      if (!phases[name] && name !== 'garden') continue;
-      for (const part of group.children) {
-        if (name === 'garden' && new T.Box3().setFromObject(part).min.y < 2) continue;
-        // Terrain and the site slab are the stationary construction ground.
-        if (name === 'base' && part.position.y < 0) continue;
-        const materials = [];
-        part.traverse(o => { if (!o.material) return;
-          const clone = m => {const c=m.clone(); c.userData.restOpacity=c.opacity; c.transparent=true; materials.push(c); return c;};
-          o.material = Array.isArray(o.material) ? o.material.map(clone) : clone(o.material);
-        });
-        constructionParts.push({part, y:part.position.y, materials, phase:phases[name] || [.90,.98]});
-      }
-    }
-  }
-  function renderConstruction(p) {
-    progress = T.MathUtils.clamp(p,0,1);
-    for (const {part,y,materials,phase} of constructionParts) {
-      const t=smooth(progress,...phase);
-      part.visible=t>0;
-      part.position.y=y-(1-t)*.65;
-      for (const m of materials) {m.opacity=m.userData.restOpacity*t; m.depthWrite=t>.99;}
-    }
-    materialization.value=1;
-    outlineMaterial.opacity=0;
-    groups.lighting.traverse(o=>{if(o.isLight){o.userData.power??=o.intensity;o.intensity=o.userData.power*smooth(p,.95,1);}});
-    glow.emissiveIntensity=2.5*smooth(p,.95,1);
-    renderer.toneMappingExposure=1.12;
-    contact.enabled=false;
-    renderer.render(scene,camera);
-  }
   const introStart=performance.now();
   const animateEntry=!matchMedia('(prefers-reduced-motion: reduce)').matches;
   let introFrame=0;
@@ -399,7 +354,6 @@ export async function createLuxuryResidence(host, { fixedConstruction = false } 
   }
   function render(p) {
     if (disposed) return;
-    if (fixedConstruction) { renderConstruction(p); return; }
     progress = p;
     const walls = smooth(p, 0.4, 0.57),
       upper = smooth(p, 0.56, 0.7),
@@ -464,22 +418,11 @@ export async function createLuxuryResidence(host, { fixedConstruction = false } 
     renderer.setSize(r.width, r.height, false);
     composer.setSize(r.width,r.height);
     contact.setSize(Math.round(r.width),Math.round(r.height));
-    if (fixedConstruction) {
-      camera.aspect=r.width/r.height;
-      camera.clearViewOffset();
-      camera.position.set(23,8.5,31);
-      camera.lookAt(10,3.2,9);
-      camera.zoom=1;
-      camera.fov=46;
-      camera.setViewOffset(r.width,r.height,-r.width*.16,0,r.width,r.height);
-      camera.updateProjectionMatrix();
-    } else {
     camera.aspect = innerWidth>=650 ? 1880/763 : r.width/r.height;
     camera.clearViewOffset();
     if(innerWidth>=650)camera.setViewOffset(r.width,r.height,-r.width*.18,0,r.width,r.height);
     camera.fov = T.MathUtils.radToDeg(2 * Math.atan(Math.tan(T.MathUtils.degToRad(43 / 2)) / Math.min(1, camera.aspect)));
     camera.updateProjectionMatrix();
-    }
     render(progress);
   }
   const observer = new ResizeObserver(resize);
@@ -487,7 +430,7 @@ export async function createLuxuryResidence(host, { fixedConstruction = false } 
   host.classList.add("model-ready");
   resize();
   function enter(){if(disposed)return;render(progress);if(performance.now()-introStart<1100 && progress<0.05)introFrame=requestAnimationFrame(enter);}
-  if(animateEntry && !fixedConstruction)introFrame=requestAnimationFrame(enter);
+  if(animateEntry)introFrame=requestAnimationFrame(enter);
   renderer.domElement.addEventListener("webglcontextlost", (e) => {
     e.preventDefault();
     host.dispatchEvent(new CustomEvent("preview-unavailable"));
@@ -495,13 +438,13 @@ export async function createLuxuryResidence(host, { fixedConstruction = false } 
   return {
     render,
     model: residence,
-    inspect(){return {camera:camera.matrixWorld.toArray(),projection:camera.projectionMatrix.toArray(),parts:constructionParts.map(({part,y})=>({y:part.position.y,restY:y,scale:part.scale.toArray(),visible:part.visible})),progress,groundScale:groups.ground.scale.y,upperScale:groups.upper.scale.y,slabVisible:groups.slab.visible,roofVisible:groups.roof.visible,materialization:materialization.value,planWallCount:plan.walls.length,lineVertexCount:drawing.group.children.find(o=>o.isLineSegments)?.geometry.attributes.position.count,groups:Object.fromEntries(Object.entries(groups).map(([key,value])=>[key,{visible:value.visible,scaleY:value.scale.y,objects:value.children.length}])),meshCount:(()=>{let count=0;residence.traverse(o=>{if(o.isMesh)count++;});return count;})()};},
+    inspect(){return {progress,groundScale:groups.ground.scale.y,upperScale:groups.upper.scale.y,slabVisible:groups.slab.visible,roofVisible:groups.roof.visible,materialization:materialization.value,planWallCount:plan.walls.length,lineVertexCount:drawing.group.children.find(o=>o.isLineSegments)?.geometry.attributes.position.count,groups:Object.fromEntries(Object.entries(groups).map(([key,value])=>[key,{visible:value.visible,scaleY:value.scale.y,objects:value.children.length}])),meshCount:(()=>{let count=0;residence.traverse(o=>{if(o.isMesh)count++;});return count;})()};},
     dispose() {
       disposed = true;
       cancelAnimationFrame(introFrame);
       observer.disconnect();
       resources.forEach((r) => r.dispose());
-      scene.traverse((o) => {for(const m of (Array.isArray(o.material)?o.material:[o.material]))m?.dispose();});
+      scene.traverse((o) => o.material?.dispose());
       contact.dispose();outputPass.dispose();composer.dispose();
       renderer.dispose();
       renderer.domElement.remove();
