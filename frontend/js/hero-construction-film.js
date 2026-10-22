@@ -8,7 +8,7 @@ if(video&&button){
  const stop=()=>{video.pause();video.classList.remove('is-playing');label('Play');};
  const play=async()=>{
   if(!started){
-   for(const [src,type] of [['/videos/home-static-camera-hd.mp4?v=2','video/mp4']]){const source=document.createElement('source');source.src=src;source.type=type;video.append(source);}
+   for(const [src,type] of [['/videos/home-static-camera-hd.mp4?v=3','video/mp4']]){const source=document.createElement('source');source.src=src;source.type=type;video.append(source);}
    started=true;video.load();
   }
   try{await video.play();video.classList.add('is-playing');label('Pause');}catch{stop();}

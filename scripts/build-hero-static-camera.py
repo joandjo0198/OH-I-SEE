@@ -43,7 +43,8 @@ repaired={}
 report=[]
 anchor_mask = np.zeros(gray.shape, np.uint8)
 # Track stationary landscape and driveway, never the moving roof or walls.
-anchor_mask[750:1070, 30:650] = 255
+anchor_mask[650:1070, 30:650] = 255
+anchor_mask[750:1000, 700:1500] = 255
 anchor_mask[1010:1070, 650:1900] = 255
 anchors = cv2.goodFeaturesToTrack(gray, 400, .015, 10, mask=anchor_mask)
 stabilizers = {}
@@ -59,11 +60,16 @@ for i, frame in frames.items():
     report.append({'frame':i,'carInliers':int(inliers.sum())})
     tracked[i]=[]
     moved, status, _ = cv2.calcOpticalFlowPyrLK(gray, current, anchors, None, winSize=(31,31), maxLevel=4)
-    valid = status.ravel() == 1
+    returned, back_status, _ = cv2.calcOpticalFlowPyrLK(current, gray, moved, None, winSize=(31,31), maxLevel=4)
+    valid = (status.ravel() == 1) & (back_status.ravel() == 1) & (np.linalg.norm(returned-anchors,axis=2).ravel()<.5)
     inverse, accepted = cv2.estimateAffinePartial2D(moved[valid], anchors[valid], method=cv2.RANSAC, ransacReprojThreshold=2)
     assert inverse is not None and accepted.sum() >= 20, f'Stabilization failed at {i}'
     stabilizers[i] = inverse
     report[-1]['staticAnchorInliers'] = int(accepted.sum())
+    keep=accepted.ravel()==1
+    residual=np.linalg.norm(cv2.transform(moved[valid],inverse)-anchors[valid],axis=2).ravel()
+    report[-1]['medianResidualPx']=float(np.median(residual[keep]))
+    report[-1]['rawDriftPx']=float(np.median(np.linalg.norm(moved[valid]-anchors[valid],axis=2).ravel()[keep]))
     if i>=183:
         continue
     for points,color in sampled:
@@ -77,15 +83,8 @@ for i, frame in frames.items():
         shift=np.median(delta[valid],axis=0)
         tracked[i].append((points+shift,color))
 
-# Fit a continuous camera trajectory instead of applying noisy per-frame estimates.
-# The house is never cut out: a single transform covers its entire silhouette.
-indices = np.array(sorted(stabilizers))
-matrices = np.array([stabilizers[i] for i in indices])
-x = np.linspace(-1, 1, len(indices))
-for row in range(2):
-    for col in range(3):
-        matrices[:,row,col] = np.polynomial.polynomial.polyval(x, np.polynomial.polynomial.polyfit(x, matrices[:,row,col], 3))
-stabilizers = dict(zip(indices, matrices))
+# Each frame is registered directly to the same reference. Do not smooth the
+# correction path: smoothing reintroduces the camera motion we are removing.
 # Preserve only the parked vehicle, feathered within the carport. No mask edge
 # crosses the facade, columns, balcony, trees, or roof.
 car_mask = np.zeros((1080,1920), np.uint8)
