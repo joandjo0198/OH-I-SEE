@@ -88,22 +88,9 @@
   <div class="hero-scroll hero-static" id="hero-scroll">
     <section class="hero-image-only" id="hero" aria-labelledby="hero-heading">
       <img class="hero-clean-background" src="/videos/home-static-camera-poster.png" alt="Completed modern home with warm lighting, landscaped garden, glass balcony and parked car" width="2160" height="1072" fetchpriority="high">
-      <svg id="hero-fixed-lighting" class="hero-fixed-lighting" viewBox="0 0 2048 1016" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false">
-        <defs>
-          <radialGradient id="hero-warm-light"><stop stop-color="#fff5cf" stop-opacity=".65"/><stop offset=".3" stop-color="#ffd997" stop-opacity=".25"/><stop offset="1" stop-color="#ffcb77" stop-opacity="0"/></radialGradient>
-        </defs>
-        <g class="hero-light-floor" fill="url(#hero-warm-light)">
-          <ellipse cx="1290" cy="742" rx="112" ry="126"/>
-          <circle cx="1120" cy="618" r="22"/><circle cx="1238" cy="607" r="22"/><circle cx="1331" cy="601" r="22"/><circle cx="1423" cy="593" r="22"/>
-        </g>
-        <g class="hero-light-upper" fill="url(#hero-warm-light)">
-          <ellipse cx="1325" cy="384" rx="135" ry="100"/>
-          <circle cx="1140" cy="272" r="24"/><circle cx="1339" cy="231" r="24"/><circle cx="1470" cy="212" r="24"/><circle cx="1561" cy="278" r="24"/>
-        </g>
-        <path class="hero-light-trace" d="M1346 120 L1517 75" fill="none" stroke="#fff4b4" stroke-width="2" stroke-linecap="round" pathLength="100"/>
-      </svg>
+      <video id="hero-construction-film" class="hero-construction-film" muted loop playsinline poster="/videos/home-static-camera-poster.png" preload="metadata" aria-hidden="true" tabindex="-1"></video>
       <div class="hero-copy-scrim" aria-hidden="true"></div>
-      <button type="button" id="hero-film-control" class="hero-film-control" aria-label="Play architectural lighting animation">Play lighting</button>
+      <button type="button" id="hero-film-control" class="hero-film-control" aria-label="Play house construction animation">Play construction</button>
       <div class="hero-copy-wrapper">
         <div class="hero-copy-badge hero-enter" data-delay="200"><span aria-hidden="true">●</span> AI CONSTRUCTION OPERATING PLATFORM</div>
         <h1 id="hero-heading"><span class="hero-copy-title hero-enter" data-delay="350">BUILD YOUR PROJECT.</span><span class="hero-copy-accent hero-enter" data-delay="500">YOUR WAY.</span></h1>
