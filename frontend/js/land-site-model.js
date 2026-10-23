@@ -2,6 +2,8 @@
 (function (root) {
   'use strict';
 
+  const Site = root.SiteCalc || require('./planning/siteCalc');
+
   const PLOT_SHAPES = [
     { value: 'rectangle', label: 'Rectangular' },
     { value: 'square', label: 'Square' },
@@ -87,28 +89,16 @@
     const l = parseFloat(state.plot_length_ft);
     const w = parseFloat(state.plot_width_ft);
     if (!Number.isFinite(l) || !Number.isFinite(w) || l <= 0 || w <= 0) return null;
-    return Math.round(l * w);
+    return Math.round(Site.ticks(l,'Length') * Site.ticks(w,'Width') / 576 * 1000) / 1000;
   }
 
   function calcBuildable(state) {
-    const l = parseFloat(state.frontage_ft || state.plot_length_ft);
-    const w = parseFloat(state.depth_ft || state.plot_width_ft);
-    const sf = parseFloat(state.setback_front_ft) || 0;
-    const sr = parseFloat(state.setback_rear_ft) || 0;
-    const sl = parseFloat(state.setback_left_ft) || 0;
-    const srt = parseFloat(state.setback_right_ft) || 0;
-    if (!Number.isFinite(l) || !Number.isFinite(w) || l <= 0 || w <= 0) {
-      return { buildable_length: null, buildable_width: null, buildable_area: null, plot_area: null };
+    try {
+      const site=Site.fromLand(state);
+      return {buildable_length:site.envelopeDepth,buildable_width:site.envelopeWidth,buildable_area:site.buildableArea,plot_area:site.plotArea};
+    } catch(error) {
+      return {buildable_length:null,buildable_width:null,buildable_area:null,plot_area:null,error:error.message};
     }
-    const plotArea = Math.round(l * w);
-    const bl = Math.max(0, l - sl - srt);
-    const bw = Math.max(0, w - sf - sr);
-    return {
-      plot_area: plotArea,
-      buildable_length: Math.round(bl * 10) / 10,
-      buildable_width: Math.round(bw * 10) / 10,
-      buildable_area: Math.round(bl * bw),
-    };
   }
 
   function hasLandOwnershipDoc(documents) {
@@ -140,6 +130,7 @@
       if (!Number.isFinite(v) || v < 0) errors[k] = 'Setback must be 0 or greater.';
     });
     const b = calcBuildable(state);
+    if (b.error) errors.buildable = b.error;
     if (b.buildable_area !== null && b.buildable_area <= 0) {
       errors.setback_front_ft = 'Setbacks are too large for this plot size.';
     }

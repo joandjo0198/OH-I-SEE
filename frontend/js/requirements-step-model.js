@@ -2,6 +2,9 @@
 (function (root) {
   'use strict';
 
+  const Site = root.SiteCalc || require('./planning/siteCalc');
+  const catalog = (root.RoomCatalog || require('./planning/roomCatalog')).catalog;
+
   const FLOOR_OPTIONS = [
     'Ground Floor Only', 'G + 1 (2 Floors)', 'G + 2 (3 Floors)', 'G + 3 (4 Floors)', 'G + 4 (5 Floors)', '5+ Floors',
   ];
@@ -108,7 +111,7 @@
       has_pooja: setup.features?.pooja ? 'Yes' : 'No', has_office: 'No', has_terrace: setup.features?.terrace ? 'Yes' : 'No',
       vastu: 'Partly follow Vastu', budget_mode: budget ? 'manual' : '', budget,
       plot_length: land.plot_length_ft || '', plot_width: land.plot_width_ft || '',
-      ...Object.fromEntries(['setback_front_ft','setback_rear_ft','setback_left_ft','setback_right_ft'].map(k => [k, land[k] ?? 0])),
+      ...Object.fromEntries(['setback_front_ft','setback_rear_ft','setback_left_ft','setback_right_ft'].map(k => [k, land[k] ?? ''])),
       road_facing: land.road_facing || setup.facing_direction || 'East',
       location: setup.city && setup.state ? `${setup.city}, ${setup.state}` : '',
       total_project_budget: budget,
@@ -142,15 +145,12 @@
 
   function areaValidation(req, land = {}) {
     const errors = {};
-    const length = Number(land.frontage_ft || land.plot_length_ft || req.plot_length);
-    const width = Number(land.depth_ft || land.plot_width_ft || req.plot_width);
-    const plot = Number.isFinite(length) && Number.isFinite(width) && length > 0 && width > 0 ? length * width : 0;
+    let site;
+    try {site=Site.fromLand({...req,...land});} catch(error) {errors.plot_size=error.message;}
+    const plot=site?.plotArea || 0;
+    const footprint=site?.buildableArea || 0;
     const floors = floorCount(req.floors);
-    const built = Number(String(req.built_up_area || '').replace(/,/g, '').replace(/\s*sq\.?\s*ft.*$/i, ''));
-    const setbacks = ['setback_front_ft','setback_rear_ft','setback_left_ft','setback_right_ft'].map(key => Number(land[key] ?? req[key] ?? 0));
-    if (setbacks.some(n => !Number.isFinite(n) || n < 0)) errors.plot_size = 'Setbacks must be non-negative numbers.';
-    const [front,rear,left,right] = setbacks.map(n => Number.isFinite(n) && n >= 0 ? n : 0);
-    const footprint = plot ? Math.max(0, length-left-right) * Math.max(0, width-front-rear) : 0;
+    const built = footprint * floors;
     const capacity = footprint * floors;
     if (!Number.isInteger(floors) || floors > 100) errors.floors = 'Enter a valid whole number of floors.';
     if (plot && !footprint) errors.plot_size = 'Setbacks leave no buildable area. Review Land & Site.';
@@ -192,26 +192,32 @@
 
   function autoRoomSizes(req) {
     const clean={...req}; ROOM_SIZE_FIELDS.forEach(f=>{clean[f.key]='';});
-    const area=areaValidation(clean);
-    if(Object.keys(area.errors).length) throw new Error(Object.values(area.errors)[0]);
-    const n=k=>Number(req[k]||0);
-    const rooms=[['size_master_bedroom',Math.min(1,n('qty_bedrooms')),120],['size_bedroom_2',Math.max(0,n('qty_bedrooms')-1),100],['size_living',n('qty_living'),140],['size_kitchen',n('qty_kitchen'),80],['size_dining',n('qty_dining'),80],['size_pooja',n('qty_pooja'),30],['size_study',n('qty_study'),70]];
-    const baseline=rooms.reduce((sum,[,qty,size])=>sum+qty*size,0);
-    if(!baseline) throw new Error('Select room quantities before calculating sizes.');
-    const reserve=area.built*0.25+n('qty_bathrooms')*40+n('qty_guest')*100;
-    const available=area.built-reserve-area.roomArea;
-    if(available<baseline) throw new Error('The entered built-up area is too small for these room quantities. Increase Built-up area or reduce rooms before auto calculating.');
-    const sizes={};
-    rooms.forEach(([key,qty,size])=>{sizes[key]=qty?Math.floor(Math.min(area.footprint,size*available/baseline)):'';});
-    const result=areaValidation({...req,...sizes});
-    if(Object.keys(result.errors).length) throw new Error(Object.values(result.errors)[0]);
-    return {sizes,reserved:reserve,remaining:result.remaining};
+    const validation=areaValidation(clean);
+    if(Object.keys(validation.errors).length) throw new Error(Object.values(validation.errors)[0]);
+    const site=Site.fromLand(req), dimensions={}, sizes={}, changes=[];
+    const counts={size_master_bedroom:Math.min(1,Number(req.qty_bedrooms)||0),size_bedroom_2:Math.max(0,(Number(req.qty_bedrooms)||0)-1),size_living:Number(req.qty_living)||0,size_dining:Number(req.qty_dining)||0,size_kitchen:Number(req.qty_kitchen)||0,size_pooja:Number(req.qty_pooja)||0,size_study:Number(req.qty_study)||0};
+    for(const [key,entry] of Object.entries(catalog)) if(counts[key]) dimensions[key]=[...entry.preferred]; else sizes[key]='';
+    const usable=(site.envelopeWidth-1.5)*(site.envelopeDepth-1.5)*validation.floors;
+    const reserved=(Number(req.qty_bathrooms)||0)*26+(Number(req.qty_guest)||0)*120+(validation.floors>1?72*validation.floors:0)+45*validation.floors;
+    const total=()=>Object.entries(dimensions).reduce((n,[k,d])=>n+d[0]*d[1]*counts[k],reserved)+validation.roomArea;
+    for(const key of ['size_living','size_dining','size_master_bedroom','size_bedroom_2','size_kitchen']) {
+      const d=dimensions[key];if(!d)continue;
+      const original=[...d],min=catalog[key].min;
+      while(total()>usable && (d[0]>min[0] || d[1]>min[1])) {
+        const axis=d[1]/min[1]>d[0]/min[0]?1:0;
+        d[axis]=Math.max(min[axis],d[axis]-0.25);
+      }
+      if(d.some((v,i)=>v!==original[i])) changes.push(`${key.replace('size_','').replaceAll('_',' ')}: ${original.map(Site.formatFeet).join(' × ')} → ${d.map(Site.formatFeet).join(' × ')}`);
+    }
+    if(total()>usable) throw new Error(`Rooms need at least ${total().toFixed(2)} sq.ft clear area; only ${Math.max(0,usable).toFixed(2)} sq.ft is available before internal partitions. Reduce room quantities or add a floor.`);
+    for(const [key,d] of Object.entries(dimensions)) sizes[key]=Number((d[0]*d[1]).toFixed(3));
+    return {sizes,dimensions,changes,reserved,remaining:Number((usable-total()).toFixed(3)),message:'Dimension-based suggestions: '+Object.entries(dimensions).map(([k,d])=>k.replace('size_','').replaceAll('_',' ')+': '+d.map(Site.formatFeet).join(' × ')).join('; ')+'. Layout generation must still check partitions and room placement.'+(changes.length?' Adjusted: '+changes.join('; '):'')};
   }
 
   function validate(req, { allowBudgetOverride = false } = {}) {
     const errors = {};
     if (!req.floors) errors.floors = 'Select number of floors.';
-    if (!String(req.built_up_area || '').trim()) errors.built_up_area = 'Built-up area is required.';
+
     if (!req.construction_type) errors.construction_type = 'Construction type is required.';
     if (!req.primary_usage) errors.primary_usage = 'Primary usage is required.';
     if (!req.project_type) errors.project_type = 'Select project type.';
@@ -230,6 +236,7 @@
     const beds = parseInt(req.qty_bedrooms, 10) || 3;
     return {
       ...req,
+      built_up_area:areaValidation(req).capacity,
       location: req.location, plot_length: req.plot_length, plot_width: req.plot_width, road_facing: req.road_facing,
       floors: req.floors, bedrooms: `${beds} Bedroom${beds > 1 ? 's' : ''}`,
       bathrooms: String(req.qty_bathrooms), parking: req.car_parking ? `${req.car_parking} Car` : req.parking,

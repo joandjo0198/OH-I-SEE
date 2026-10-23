@@ -40,17 +40,17 @@ function normalizeRoadFacing(value) {
 }
 
 function parseBedrooms(label) {
-  const m = String(label || '').match(/(\d+)/);
+  const m = String(label ?? '').match(/(\d+)/);
   return m ? Math.min(10, parseInt(m[1], 10)) : 3;
 }
 
 function parseBathrooms(label) {
-  const m = String(label || '').match(/(\d+)/);
+  const m = String(label ?? '').match(/(\d+)/);
   return m ? Math.min(10, parseInt(m[1], 10)) : 2;
 }
 
 function parseParking(label) {
-  const s = String(label || '').toLowerCase();
+  const s = String(label ?? '').toLowerCase();
   if (s.includes('none') || s.includes('no ')) return 0;
   const m = s.match(/(\d+)/);
   return m ? parseInt(m[1], 10) : 1;
@@ -124,8 +124,11 @@ function fromProject(project) {
       const area = Number(answers[sizeKey]);
       const supplied=sizeKey && answers[sizeKey]!==undefined && answers[sizeKey]!==null && answers[sizeKey]!=='';
       if(supplied&&(!Number.isFinite(area)||area<=0))throw Object.assign(new Error(`${name}: enter a positive room area. The entered value was not replaced.`),{status:422});
+      const exact=answers.room_dimensions?.[sizeKey];
+      if(exact && (!Array.isArray(exact)||exact.length!==2||exact.some(n=>!Number.isFinite(Number(n))||Number(n)<=0))) throw Object.assign(new Error(`${name}: invalid width/depth.`),{status:422});
+      if(exact && Math.abs(Number(exact[0])*Number(exact[1])-area)<0.01) {lengthFt=Number(exact[0]);widthFt=Number(exact[1]);}
       const scale = supplied ? Math.sqrt(area / (lengthFt * widthFt)) : 1;
-      rooms.push({ name: qty > 1 ? name+' '+(i+1) : name, type, storeyIndex: 0, lengthFt: lengthFt * scale, widthFt: widthFt * scale, sizeSource:supplied?'user-area':'assumed', requestedAreaSqFt:supplied?area:null, dimensionsProposed:true });
+      rooms.push({ name: qty > 1 ? name+' '+(i+1) : name, type, storeyIndex: 0, lengthFt: lengthFt * scale, widthFt: widthFt * scale, sizeSource:supplied?'user-area':'assumed', requestedAreaSqFt:supplied?area:null, dimensionsProposed:true, autoSized:!!exact });
     }
   }
   add('Living Room','living',count('qty_living',1),'size_living',16,14);
@@ -133,7 +136,7 @@ function fromProject(project) {
   add('Dining','dining',count('qty_dining',1),'size_dining',12,10);
   add('Master Bedroom','bedroom',Math.min(1,bedrooms),'size_master_bedroom',12,11);
   add('Bedroom','bedroom',Math.max(0,bedrooms-1),'size_bedroom_2',12,11);
-  add('Bathroom','bathroom',bathrooms,'',8,6);
+  add('Bathroom','bathroom',bathrooms,'',answers.room_dimensions?6.5:8,answers.room_dimensions?4:6);
   add('Pooja Room','pooja',count('qty_pooja',flags.hasPooja?1:0),'size_pooja',6,6);
   add('Home Office','office',count('qty_study',flags.hasOffice?1:0),'size_study',10,9);
   add('Guest Room','guest',count('qty_guest',0),'',12,10);
@@ -162,6 +165,7 @@ function fromProject(project) {
       state: project.state || hr.plot?.location?.state || '',
       plotLengthFt,
       plotWidthFt,
+      ...(answers.room_dimensions ? {plotLengthM:Number(land.frontage_ft || plotWidthFt)*0.3048,plotWidthM:Number(land.depth_ft || plotLengthFt)*0.3048,dimensionConvention:'width-depth-v2'} : {}),
       ...(land.frontage_ft && land.depth_ft ? {frontageFt:Number(land.frontage_ft),depthFt:Number(land.depth_ft)} : {}),
       roadFacing: normalizeRoadFacing(land.road_facing || answers.road_facing || project.road_facing || 'East'),
       ...Object.fromEntries(['front','rear','left','right'].filter(side => (land['setback_'+side+'_ft'] ?? answers['setback_'+side+'_ft']) !== undefined).map(side => ['setback'+side[0].toUpperCase()+side.slice(1)+'Ft', Number(land['setback_'+side+'_ft'] ?? answers['setback_'+side+'_ft'])])),

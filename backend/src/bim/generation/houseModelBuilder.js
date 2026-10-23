@@ -81,7 +81,7 @@ function buildHouseModel(requirements) {
       floorId,
       start: { ...spec.start },
       end: { ...spec.end },
-      thicknessM: WALL_THICKNESS_M,
+      thicknessM: spec.interior ? 0.1143 : 0.2286,
       heightM: spec.heightM || WALL_HEIGHT_M,
       elevationM: spec.elevationM ?? elevationM,
       exterior: !!spec.exterior,

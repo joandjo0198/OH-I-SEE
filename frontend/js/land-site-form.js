@@ -26,8 +26,8 @@
     const baEl = document.getElementById('ls-buildable-area');
     const paEl = document.getElementById('ls-plot-area-calc');
     if (areaEl) areaEl.value = area ? area.toLocaleString('en-IN') : '\u2014';
-    if (blEl) blEl.value = b.buildable_length ?? '\u2014';
-    if (bwEl) bwEl.value = b.buildable_width ?? '\u2014';
+    if (blEl) blEl.value = b.buildable_length == null ? '\u2014' : root.SiteCalc.formatFeet(b.buildable_length);
+    if (bwEl) bwEl.value = b.buildable_width == null ? '\u2014' : root.SiteCalc.formatFeet(b.buildable_width);
     if (baEl) baEl.value = b.buildable_area ? b.buildable_area.toLocaleString('en-IN') : '\u2014';
     if (paEl) paEl.value = b.plot_area ? b.plot_area.toLocaleString('en-IN') : '\u2014';
   }
@@ -92,10 +92,10 @@
           <h3 class="ps-section-title">2.3 Setbacks &amp; Buildable Area</h3>
           <div class="ps-section-body">
             <div class="ps-grid ps-grid-4">
-              <div class="ps-field"><label>Front Setback (ft) <span class="req">*</span></label><input data-ls-field="setback_front_ft" type="number" min="0" value="${esc(state.setback_front_ft)}">${fieldErr(errors, 'setback_front_ft')}</div>
-              <div class="ps-field"><label>Rear Setback (ft) <span class="req">*</span></label><input data-ls-field="setback_rear_ft" type="number" min="0" value="${esc(state.setback_rear_ft)}">${fieldErr(errors, 'setback_rear_ft')}</div>
-              <div class="ps-field"><label>Left Setback (ft) <span class="req">*</span></label><input data-ls-field="setback_left_ft" type="number" min="0" value="${esc(state.setback_left_ft)}">${fieldErr(errors, 'setback_left_ft')}</div>
-              <div class="ps-field"><label>Right Setback (ft) <span class="req">*</span></label><input data-ls-field="setback_right_ft" type="number" min="0" value="${esc(state.setback_right_ft)}">${fieldErr(errors, 'setback_right_ft')}</div>
+              <div class="ps-field"><label>Front Setback (ft) <span class="req">*</span></label><input data-ls-field="setback_front_ft" type="number" min="0" step="0.25" required value="${esc(state.setback_front_ft)}">${fieldErr(errors, 'setback_front_ft')}</div>
+              <div class="ps-field"><label>Rear Setback (ft) <span class="req">*</span></label><input data-ls-field="setback_rear_ft" type="number" min="0" step="0.25" required value="${esc(state.setback_rear_ft)}">${fieldErr(errors, 'setback_rear_ft')}</div>
+              <div class="ps-field"><label>Left Setback (ft) <span class="req">*</span></label><input data-ls-field="setback_left_ft" type="number" min="0" step="0.25" required value="${esc(state.setback_left_ft)}">${fieldErr(errors, 'setback_left_ft')}</div>
+              <div class="ps-field"><label>Right Setback (ft) <span class="req">*</span></label><input data-ls-field="setback_right_ft" type="number" min="0" step="0.25" required value="${esc(state.setback_right_ft)}">${fieldErr(errors, 'setback_right_ft')}</div>
             </div>
             <div class="ps-grid ps-grid-4 ps-calc-row">
               <div class="ps-field"><label>Plot Area (calculated)</label><input id="ls-plot-area-calc" type="text" readonly class="ps-readonly"></div>
@@ -103,7 +103,7 @@
               <div class="ps-field"><label>Buildable Width (ft)</label><input id="ls-buildable-width" type="text" readonly class="ps-readonly"></div>
               <div class="ps-field"><label>Maximum Buildable Area (sq.ft)</label><input id="ls-buildable-area" type="text" readonly class="ps-readonly"></div>
             </div>
-            <p class="ps-next-hint">Calculated values update automatically from plot size minus setbacks.</p>
+            <p class="ps-next-hint">Calculated from plot width minus left/right and plot length minus front/rear. Setback defaults are editable concept allowances; use the setbacks approved for your site.</p>
           </div>
         </section>
 

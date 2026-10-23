@@ -581,8 +581,8 @@ export class FloorPlanViewer {
       const exterior = this.isExteriorWall(el);
       const isSelected = el.id === this.selectedId;
       this.drawPolygon(poly, {
-        fill: isSelected ? '#3a3a3a' : (exterior ? '#1a1a1a' : '#4a4a4a'),
-        stroke: isSelected ? '#c9a800' : (exterior ? '#0a0a0a' : '#333'),
+        fill: isSelected ? '#3a3a3a' : (exterior ? '#164e96' : '#3576bd'),
+        stroke: isSelected ? '#c9a800' : (exterior ? '#103c75' : '#22578e'),
         lineWidth: exterior ? 1.2 : 0.8,
       });
     }

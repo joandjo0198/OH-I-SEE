@@ -91,8 +91,8 @@
             <div class="ps-grid ps-grid-2">
               <div class="ps-field"><label>Number of Floors <span class="req">*</span></label>
                 <select data-req-field="floors" data-ps-searchable>${selectOpts(model.FLOOR_OPTIONS, req.floors)}</select>${fieldErr(errors, 'floors')}</div>
-              <div class="ps-field"><label>Built-up Area (sq.ft) <span class="req">*</span></label>
-                <input data-req-field="built_up_area" type="number" min="1" value="${esc(req.built_up_area)}">${fieldErr(errors, 'built_up_area')}</div>
+              <div class="ps-field"><label>Buildable capacity across floors (sq.ft)</label>
+                <input data-req-field="built_up_area" type="number" readonly value="${esc(model.areaValidation(req).capacity)}">${fieldErr(errors, 'built_up_area')}</div>
               <div class="ps-field"><label>Construction Type <span class="req">*</span></label>
                 <select data-req-field="construction_type" data-ps-searchable>${selectOpts(model.CONSTRUCTION_TYPES, req.construction_type)}</select>${fieldErr(errors, 'construction_type')}</div>
               <div class="ps-field"><label>Primary Usage <span class="req">*</span></label>
@@ -144,7 +144,7 @@
               ${model.ROOM_SIZE_FIELDS.map((f) => `
                 <div class="ps-field">
                   <label class="rq-label">${esc(f.label)}</label>
-                  <input data-req-field="${f.key}" type="number" min="0" placeholder="sq.ft" value="${esc(req[f.key])}"><div data-room-error="${f.key}" class="ps-field-error">${esc(errors[f.key] || '')}</div>
+                  <input data-req-field="${f.key}" type="number" min="0" placeholder="sq.ft" value="${esc(req[f.key])}"><small data-room-dim="${f.key}"></small><div data-room-error="${f.key}" class="ps-field-error">${esc(errors[f.key] || '')}</div>
                 </div>`).join('')}
             </div>
           </div>
@@ -341,7 +341,7 @@
       const popup=document.createElement('dialog');
       popup.setAttribute('aria-label','How to fix room calculation warnings');
       popup.style.cssText='background:#171717;color:#eee;border:1px solid #ffd400;border-radius:14px;padding:24px;width:min(600px,90vw);max-height:80vh;overflow:auto;line-height:1.6';
-      popup.innerHTML='<h2 style="color:#ffd400">How to fix this warning</h2><p>The room calculator currently reads <strong>'+esc(area.plot)+' sq.ft plot area</strong> and <strong>'+esc(area.built)+' sq.ft built-up area</strong>.</p><ol><li><strong>Step 2 — Land &amp; Site:</strong> use the Previous button to go back. Enter <strong>Plot Length (ft)</strong> and <strong>Plot Width (ft)</strong>. Both must be greater than zero. For a 34 × 70 ft plot, enter 34 and 70. The summary card alone does not supply these fields.</li><li>In <strong>2.3 Setbacks &amp; Buildable Area</strong>, check <strong>Front, Rear, Left and Right Setback (ft)</strong>. Enter your actual required setbacks; they must leave buildable space.</li><li>Return to <strong>Step 3 → 3.1 Basic Requirements</strong>. Set <strong>Built-up Area (sq.ft)</strong> to the total planned floor area across all floors, and check the floor selection. This is an area, not a plot side length. It must fit within the buildable footprint × floor count.</li><li>If the area is too small, review room quantities in <strong>3.2 Rooms &amp; Layout</strong>. Reduce quantities or increase the planned built-up area only if it fits your plot and floors. The calculator also reserves space for bathrooms, guest rooms, walls, stairs and circulation.</li><li>Return to <strong>3.3 Room Details</strong> and click <strong>Auto calculate room sizes</strong> again.</li></ol><button type="button" style="background:#ffd400;color:#111;border:0;border-radius:8px;padding:12px 20px;font-weight:700">Got it</button>';
+      popup.innerHTML='<h2 style="color:#ffd400">How to fix this warning</h2><p>The room calculator currently reads <strong>'+esc(area.plot)+' sq.ft plot area</strong> and <strong>'+esc(area.built)+' sq.ft built-up area</strong>.</p><ol><li><strong>Step 2 — Land &amp; Site:</strong> use the Previous button to go back. Enter <strong>Plot Length (ft)</strong> and <strong>Plot Width (ft)</strong>. Both must be greater than zero. For a 34 × 70 ft plot, enter 34 and 70. The summary card alone does not supply these fields.</li><li>In <strong>2.3 Setbacks &amp; Buildable Area</strong>, check <strong>Front, Rear, Left and Right Setback (ft)</strong>. Enter your actual required setbacks; they must leave buildable space.</li><li>Return to <strong>Step 3 → 3.1 Basic Requirements</strong>. Check the floor selection. Buildable capacity is calculated automatically from the Land &amp; Site envelope × floor count.</li><li>If the area is too small, review room quantities in <strong>3.2 Rooms &amp; Layout</strong>. Reduce quantities or increase the planned built-up area only if it fits your plot and floors. The calculator also reserves space for bathrooms, guest rooms, walls, stairs and circulation.</li><li>Return to <strong>3.3 Room Details</strong> and click <strong>Auto calculate room sizes</strong> again.</li></ol><button type="button" style="background:#ffd400;color:#111;border:0;border-radius:8px;padding:12px 20px;font-weight:700">Got it</button>';
       document.body.appendChild(popup);
       popup.querySelector('button').addEventListener('click',()=>popup.close());
       popup.addEventListener('close',()=>popup.remove());popup.showModal();
@@ -349,15 +349,20 @@
     container.querySelector('#rq-area-help')?.addEventListener('click',showAreaHelp);
     const showArea = () => {
       const area = M().areaValidation(state);
+      state.built_up_area=area.capacity;
+      const capacityField=form.querySelector('[data-req-field="built_up_area"]');
+      if(capacityField)capacityField.value=area.capacity;
       const summary = container.querySelector('#rq-area-summary');
       const help=container.querySelector('#rq-area-help');if(help)help.hidden=!Object.keys(area.errors).length;
       if (summary) {
-        summary.textContent = `Plot: ${area.plot} sq.ft · Buildable footprint: ${area.footprint} sq.ft · ${area.floors} floor(s) · Specified rooms: ${area.roomArea} sq.ft · Remaining: ${area.remaining} sq.ft. ${area.errors.room_area || area.errors.built_up_area || area.errors.plot_size || ''}`;
+        summary.textContent = `Plot: ${area.plot} sq.ft · Buildable footprint: ${area.footprint} sq.ft · ${area.floors} floor(s) · Specified rooms: ${Number(area.roomArea.toFixed(3))} sq.ft · Remaining: ${Number(area.remaining.toFixed(3))} sq.ft. ${area.errors.room_area || area.errors.built_up_area || area.errors.plot_size || ''}`;
         summary.className = Object.keys(area.errors).length ? 'ps-field-error' : 'rq-hint';
       }
       M().ROOM_SIZE_FIELDS.forEach(({key}) => {
         const input = form.querySelector(`[data-req-field="${key}"]`);
         if (input) { if (area.footprint) input.max = area.footprint; input.setCustomValidity(area.errors[key] || ''); input.setAttribute('aria-invalid', String(Boolean(area.errors[key]))); }
+        const dimensionLabel=form.querySelector(`[data-room-dim="${key}"]`);
+        if(dimensionLabel)dimensionLabel.textContent=state.room_dimensions?.[key]?.map(root.SiteCalc.formatFeet).join(' × ') || '';
         const error = form.querySelector(`[data-room-error="${key}"]`);
         if (error) error.textContent = area.errors[key] || '';
       });
@@ -370,13 +375,14 @@
       try {
         const result=M().autoRoomSizes(state);
         Object.assign(state,result.sizes);
+        state.room_dimensions=result.dimensions;
         Object.entries(result.sizes).forEach(([key,value])=>{const input=form.querySelector('[data-req-field="'+key+'"]');if(input)input.value=value;});
         sync();
         message.className='rq-hint';
-        message.textContent='Suggested sizes applied. Reserved 25% for walls, stairs and circulation, plus bathroom and guest-room allowances. Custom rooms were preserved. Review these suggestions with your designer.';
+        message.textContent=result.message;
       } catch(e) { message.className='ps-field-error';message.textContent=e.message; container.querySelector('#rq-area-help').hidden=false;showAreaHelp(); }
     });
-    form.addEventListener('input', sync);
+    form.addEventListener('input', e=>{const key=e.target.dataset.reqField;if(state.room_dimensions?.[key])delete state.room_dimensions[key];sync();});
     form.addEventListener('change', sync);
 
     container.querySelector('#rq-custom-add')?.addEventListener('click', () => {

@@ -1,7 +1,7 @@
 'use strict';
 
 const FT = 0.3048;
-const PARTITION_M = 0.12;
+const PARTITION_M = 0.1143;
 
 function ft(n) {
   return Math.round(Number(n || 0) * FT * 1000) / 1000;
@@ -13,12 +13,8 @@ function roomAreaM2(room) {
 
 function getSetbacks(site, plotL, plotW) {
   const s = site?.setbacks || {};
-  const defaults = {
-    front: Math.min(ft(10), (plotW || 12) * 0.12),
-    rear: Math.min(ft(5), (plotW || 12) * 0.08),
-    left: Math.min(ft(5), (plotL || 15) * 0.08),
-    right: Math.min(ft(5), (plotL || 15) * 0.08),
-  };
+  // Stable editable concept defaults; never derive setbacks from plot percentages.
+  const defaults = {front:ft(10),rear:ft(5),left:ft(5),right:ft(5)};
   const raw = {
     front: s.frontFt ?? site.setbackFrontFt,
     rear: s.rearFt ?? site.setbackRearFt,
@@ -36,8 +32,8 @@ function getSetbacks(site, plotL, plotW) {
 function buildableRect(plotL, plotW, setbacks) {
   const x = setbacks.left;
   const y = setbacks.front;
-  const width = Math.max(3, plotL - setbacks.left - setbacks.right);
-  const height = Math.max(3, plotW - setbacks.front - setbacks.rear);
+  const width = Math.max(0, plotL - setbacks.left - setbacks.right);
+  const height = Math.max(0, plotW - setbacks.front - setbacks.rear);
   return { x, y, width, height };
 }
 
@@ -339,47 +335,32 @@ function computeGardenBoundary(gardenRect, buildingRooms = []) {
  * Main spatial layout for one storey.
  */
 
-// Maximal free rectangles: try both orientations, retaining exact room dimensions.
-function packExactRooms(rooms, rect, gap) {
-  let free = [{...rect}];
-  const placed = [];
-  for (const room of [...rooms].sort((a,b)=>roomAreaM2(b)-roomAreaM2(a))) {
-    const w=ft(room.lengthFt), h=ft(room.widthFt);
-    let best=null;
-    for (const f of free) for (const [width,height,rotation] of [[w,h,0],[h,w,90]]) {
-      if(width<=f.width+1e-7 && height<=f.height+1e-7) {
-        const score=Math.min(f.width-width,f.height-height);
-        if(!best || score<best.score) best={x:f.x,y:f.y,width,height,rotation,score};
-      }
-    }
-    if(!best) return {ok:false,error:`Room "${room.name}" does not fit at its requested dimensions. No room sizes were reduced.`,rooms:[]};
-    const r={...room,x:best.x,y:best.y,lengthM:best.width,widthM:best.height,rotation:best.rotation};
-    placed.push(r);
-    const bx=r.x+r.lengthM+gap, by=r.y+r.widthM+gap;
-    free=free.flatMap(f=>{
-      const fx=f.x+f.width,fy=f.y+f.height;
-      if(r.x>=fx || bx<=f.x || r.y>=fy || by<=f.y) return [f];
-      const out=[];
-      if(r.x>f.x) out.push({...f,width:r.x-f.x-gap});
-      if(bx<fx) out.push({...f,x:bx,width:fx-bx});
-      if(r.y>f.y) out.push({...f,height:r.y-f.y-gap});
-      if(by<fy) out.push({...f,y:by,height:fy-by});
-      return out.filter(q=>q.width>0&&q.height>0);
-    });
-    free=free.filter((f,i)=>!free.some((g,j)=>i!==j&&g.x<=f.x&&g.y<=f.y&&g.x+g.width>=f.x+f.width&&g.y+g.height>=f.y+f.height&&(j<i||g.width*g.height>f.width*f.height)));
-  }
-  return {ok:true,rooms:placed,originX:rect.x,originY:rect.y,
-    buildL:Math.max(4,...placed.map(r=>r.x+r.lengthM-rect.x)),
-    buildW:Math.max(4,...placed.map(r=>r.y+r.widthM-rect.y))};
-}
+const {packExactRooms}=require('./layoutEngine');
 
 function layoutStoreyRooms(rooms, buildable, partition = PARTITION_M) {
   if (!rooms.some(r=>r.sizeSource==='user-area'||r.requestedAreaSqFt>0)) return layoutAssumedRooms(rooms,buildable,partition);
-  const pack=packExactRooms(rooms,buildable,partition);
+  const auto=rooms.some(r=>r.autoSized);
+  const wall=auto?0.2286:0;
+  const rect={...buildable,x:buildable.x+wall,y:buildable.y+wall,width:buildable.width-2*wall,height:buildable.height-2*wall};
+  let proposed=rooms.map(r=>({...r}));
+  let pack=packExactRooms(proposed,rect,partition);
+  const changes=[];
+  const minimum={living:[10,8],dining:[8,7],bedroom:[9,10],kitchen:[8,7]};
+  for(const type of ['living','dining','bedroom','kitchen']) {
+    for(const room of proposed.filter(r=>r.type===type && r.autoSized)) {
+      const before=[room.lengthFt,room.widthFt],min=/master/i.test(room.name)?[10,10]:minimum[type];
+      while(!pack.ok && (room.lengthFt>min[0] || room.widthFt>min[1])) {
+        const axis=room.lengthFt/min[0]>room.widthFt/min[1]?'lengthFt':'widthFt';
+        room[axis]=Math.max(min[axis==='lengthFt'?0:1],room[axis]-0.25);
+        pack=packExactRooms(proposed,rect,partition);
+      }
+      if(before[0]!==room.lengthFt||before[1]!==room.widthFt)changes.push(`${room.name}: ${before.join(' × ')} ft → ${room.lengthFt} × ${room.widthFt} ft`);
+    }
+  }
   if(!pack.ok) return {...pack,parking:[],garden:null,layoutError:pack.error};
   const parking=pack.rooms.filter(r=>r.type==='parking').map(r=>({...r,zone:'parking'}));
   const buildingRooms=pack.rooms.filter(r=>r.type!=='parking');
-  return {...pack,rooms:[...buildingRooms,...parking],buildingRooms,parking,garden:null,buildable,layoutWarning:null};
+  return {...pack,originX:pack.originX-wall,originY:pack.originY-wall,buildL:pack.buildL+2*wall,buildW:pack.buildW+2*wall,rooms:[...buildingRooms,...parking],buildingRooms,parking,garden:null,buildable,layoutWarning:changes.length?'Auto-sized rooms adjusted to fit partitions: '+changes.join('; '):null};
 }
 
 function layoutAssumedRooms(rooms, buildable, partition = PARTITION_M) {
