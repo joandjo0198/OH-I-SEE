@@ -79,18 +79,20 @@
     };
     const budget = setup.estimated_budget ? String(setup.estimated_budget).replace(/[^\d]/g, '') : '';
     return {
-      floors: floorsMap[setup.floors] || 'G + 1 (2 Floors)',
+      cad_model_version: 1,
+      floors: floorsMap[setup.floors] || 'Ground Floor Only',
       built_up_area: setup.built_up_area || '',
       construction_type: setup.construction_type || 'New Construction',
       primary_usage: 'Self-use',
       project_type: setup.project_type || 'Residential House',
-      qty_bedrooms: '3', qty_bathrooms: '2', qty_living: '1', qty_dining: '1',
-      qty_kitchen: '1', qty_pooja: setup.features?.pooja ? '1' : '0',
+      qty_bedrooms: '', qty_bathrooms: '', qty_living: '0', qty_dining: '0',
+      qty_kitchen: '0', qty_pooja: setup.features?.pooja ? '1' : '0',
       qty_study: '0', qty_guest: '0',
       custom_rooms: [],
       size_master_bedroom: '', size_bedroom_2: '', size_living: '', size_kitchen: '',
       size_dining: '', size_pooja: '', size_study: '',
-      car_parking: '2', two_wheeler_parking: '2', covered_parking: 'Yes', ev_charging: 'Yes',
+      car_parking: '0', two_wheeler_parking: '0', covered_parking: 'No', ev_charging: 'No',
+      sitout: 'No', staircase: 'No',
       parking_checks: [],
       family_members: '4', adults: '2', children: '2', elderly_members: '0',
       lifestyle_checks: [],
@@ -107,7 +109,7 @@
       special_requirements: setup.additional_notes || '',
       things_to_avoid: '',
       reference_files: [],
-      bedrooms: '3 Bedrooms', bathrooms: '2', parking: '1 Car',
+      bedrooms: '', bathrooms: '', parking: '0',
       has_pooja: setup.features?.pooja ? 'Yes' : 'No', has_office: 'No', has_terrace: setup.features?.terrace ? 'Yes' : 'No',
       vastu: 'Partly follow Vastu', budget_mode: budget ? 'manual' : '', budget,
       plot_length: land.plot_length_ft || '', plot_width: land.plot_width_ft || '',
@@ -221,8 +223,11 @@
     if (!req.construction_type) errors.construction_type = 'Construction type is required.';
     if (!req.primary_usage) errors.primary_usage = 'Primary usage is required.';
     if (!req.project_type) errors.project_type = 'Select project type.';
-    if (!parseInt(req.qty_bedrooms, 10)) errors.qty_bedrooms = 'Bedrooms is required.';
-    if (!parseInt(req.qty_bathrooms, 10)) errors.qty_bathrooms = 'Bathrooms is required.';
+    for(const field of ROOM_FIELDS) {
+      const raw=req[field.key],value=raw===''||raw==null?0:Number(raw);
+      if(!Number.isInteger(value)||value<0||value>10)errors[field.key]='Enter a whole number from 0 to 10.';
+    }
+    if(!ROOM_FIELDS.some(field=>Number(req[field.key])>0)&&!(req.custom_rooms||[]).some(r=>Number(r.quantity??r.qty)>0))errors.qty_bedrooms='Select at least one room for your project.';
     if (!req.quality) errors.quality = 'Select quality level.';
     Object.assign(errors, areaValidation(req).errors);
     const b = budgetAllocation(req);
@@ -233,7 +238,7 @@
   }
 
   function toIntentAnswers(req) {
-    const beds = parseInt(req.qty_bedrooms, 10) || 3;
+    const beds = parseInt(req.qty_bedrooms, 10) || 0;
     return {
       ...req,
       built_up_area:areaValidation(req).capacity,

@@ -164,6 +164,7 @@ async function generateFromRequirements(project, userId, requirements, { label, 
   const savedBrief=require('./clientDesignBrief').collect(project);
   require('./clientDesignBrief').assertUsableBrief(savedBrief);
   const savedRequirements=fromProject(project);
+  if(savedRequirements.building.cadEngine)requirements.building.cadEngine=true;
   const model = generate(requirements);
   model.metadata = {...model.metadata,clientBrief:savedBrief,designStatus:'Concept design — professional review required',designWarnings:interpretation?.warnings||[],designChanges:interpretation?.changes||[]};
   const programAudit=auditProgram(model,savedRequirements);
@@ -215,6 +216,7 @@ async function generateFromProject(project, userId, { label } = {}) {
   const base=fromProject(project);
   const brief=require('./clientDesignBrief').collect(project);
   require('./clientDesignBrief').assertUsableBrief(brief);
+  if(base.building.cadEngine) return generateFromRequirements(project,userId,base,{label:label||'Validated design study',interpretation:{warnings:brief.warnings,changes:[]}});
   const interpreted=await require('./openaiBim').interpret(base,'Create the initial concept from this client project. Preserve every room quantity, plot, setbacks, floor count and valid requested room area. Arrange the rooms across the floors. Clearly disclose unresolved requirements. Never change supplied areas. Any default dimensions or inferred room proportions must be explicitly marked as assumptions.',{clientBrief:brief.inputs});
   require('./clientDesignBrief').enforceSavedProgram(base,interpreted.requirements);
   interpreted.warnings=[...brief.warnings,...interpreted.warnings];

@@ -7,6 +7,25 @@ const bimService = require('../services/bimService');
 const router = express.Router({ mergeParams: true });
 
 router.use(authenticate);
+
+// All drawing formats come from the saved, owner-scoped canonical plan.
+router.get('/cad', async (req,res) => {
+  try {
+    const result=await bimService.getBimForProject(req.params.projectId,req.user.id);
+    const plan=result?.model?.metadata?.cadPlan;
+    if(!plan)return res.status(409).json({error:'This saved design predates the validated drawing workflow. Review requirements and generate a new version first.'});
+    require('../cad/planValidator').enforce(plan);
+    const format=String(req.query.format||'json'),floor=Number(req.query.floor||0),sheet=String(req.query.sheet||'A-02');
+    if(!Number.isInteger(floor)||!plan.floors.some(f=>f.index===floor)||!['A-01','A-02','A-03','A-04'].includes(sheet))return res.status(400).json({error:'Invalid floor or sheet.'});
+    const options={floor,sheet,units:req.query.units==='mm'?'mm':'imperial',projectId:req.params.projectId};
+    res.set('Cache-Control','private, no-store');
+    if(format==='json')return res.json({success:true,data:plan});
+    if(format==='svg')return res.type('image/svg+xml').send(require('../cad/drawingRenderer').render(plan,options));
+    if(format==='pdf')return res.set('Content-Disposition','attachment; filename="drawing-set.pdf"').type('application/pdf').send(await require('../cad/sheetComposer').pdf(plan,options));
+    if(format==='dxf')return res.set('Content-Disposition',`attachment; filename="floor-${floor}.dxf"`).type('application/dxf').send(require('../cad/cadWriter').dxf(plan,options));
+    return res.status(400).json({error:'Supported formats: json, svg, pdf, dxf. DWG conversion requires a configured external CAD converter.'});
+  } catch(e) {res.status(e.status||500).json({error:e.message,details:e.details});}
+});
 const running=new Set();
 router.use((req,res,next)=>{if(req.method!=='POST'||!['/modify','/generate'].includes(req.path))return next();const key=req.user.id+':'+req.params.projectId;if(running.has(key))return res.status(409).json({error:'A design is already being generated for this project. Please wait.'});running.add(key);res.once('finish',()=>running.delete(key));next();});
 

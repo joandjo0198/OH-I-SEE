@@ -9,7 +9,9 @@ function auditProgram(model,requirements){
   const dims=[Number(found.dimensions?.lengthM)/.3048,Number(found.dimensions?.widthM)/.3048].sort((a,b)=>a-b);
   const mins=minimum?.slice().sort((a,b)=>a-b);
   const disclosed=model.metadata?.layoutWarnings?.some(w=>w.includes('Auto-sized rooms adjusted')&&w.includes(expected.name+':'));
-  const allowedAdjustment=expected.autoSized && disclosed && mins && dims.every((n,i)=>n>=mins[i]-.01) && dims[1]/dims[0]<=2.01;
+  const cad=model.metadata?.cadPlan;
+  const cadAdjustment=cad?.validation?.valid && (expected.autoSized||expected.sizeSource==='assumed') && cad.adjustments.some(a=>a.name===expected.name&&a.automatic);
+  const allowedAdjustment=cadAdjustment || (expected.autoSized && disclosed && mins && dims.every((n,i)=>n>=mins[i]-.01) && dims[1]/dims[0]<=2.01);
   if(!allowedAdjustment&&wanted>0&&Math.abs(actual-wanted)>Math.max(1,wanted*.02))issues.push(`${expected.name}: requested ${Math.round(wanted)} sq.ft; generated ${Math.round(actual)} sq.ft.`);
  }
  const count=elements.filter(e=>e.type==='BuildingStorey').length;

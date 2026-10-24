@@ -34,6 +34,7 @@
   <script type="module">
     import { FloorPlanViewer } from '../js/bim/floor-plan-viewer.js';
     import { mountBimPromptBar } from '../js/bim/bim-prompt-bar.js';
+    import { mountCadWorkspace } from '../js/bim/cad-workspace.js';
 
     let project = null;
     let viewer = null;
@@ -107,6 +108,11 @@
 
     function renderPlan() {
       const model = bimData?.model;
+      if(model?.metadata?.cadPlan) {
+        if(viewer)viewer.dispose();
+        viewer=mountCadWorkspace(document.getElementById('pw-content'),project,model.metadata.cadPlan);
+        return;
+      }
       if (!model) {
         document.getElementById('pw-content').innerHTML = `
           <div id="bim-prompt-mount"></div><div class="pw-stat-card">

@@ -26,8 +26,8 @@
       "required": ["floors", "bedrooms", "bathrooms"],
       "properties": {
         "floors": { "type": "integer", "minimum": 1, "maximum": 4 },
-        "bedrooms": { "type": "integer", "minimum": 1, "maximum": 10 },
-        "bathrooms": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "bedrooms": { "type": "integer", "minimum": 0, "maximum": 10 },
+        "bathrooms": { "type": "integer", "minimum": 0, "maximum": 10 },
         "parking": { "type": "integer", "minimum": 0, "maximum": 6 },
         "architecturalStyle": { "type": "string" },
         "qualityLevel": { "type": "string", "enum": ["Economic", "Standard", "Premium", "Custom"] },

@@ -36,7 +36,7 @@ function addWallElement(model, seq, spec, storeyId, matId) {
       lengthM,
       heightM: spec.heightM || WALL_HEIGHT_M,
       thicknessM: spec.thicknessM || 0.23,
-      volumeM3: Math.round(lengthM * (spec.heightM || WALL_HEIGHT_M) * 0.23 * 1000) / 1000,
+      volumeM3: Math.round(lengthM * (spec.heightM || WALL_HEIGHT_M) * (spec.thicknessM || 0.23) * 1000) / 1000,
     },
     relationships: [],
     createdAt: ts(),

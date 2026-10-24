@@ -1,7 +1,7 @@
 {
   "name": "ohisee-backend",
   "version": "1.0.0",
-  "description": "OH I SEE Industrial Solutions \u00e2\u20ac\u201d Node.js/Express API Backend",
+  "description": "OH I SEE Industrial Solutions â€” Node.js/Express API Backend",
   "main": "src/server.js",
   "engines": {
     "node": "22.x"
@@ -18,11 +18,13 @@
     "test:marketplace": "node --test tests/marketplace-domain.test.js tests/marketplace-api.test.js",
     "test:roadmap": "node --test tests/roadmap.test.js",
     "migrate:materials": "node scripts/migrate-materials.js",
-    "check:materials": "node scripts/migrate-materials.js --check"
+    "check:materials": "node scripts/migrate-materials.js --check",
+    "test:cad": "vitest run tests/cad-workflow.test.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@supabase/supabase-js": "^2.45.0",
+    "@tarikjabiri/dxf": "^2.9.0",
     "ajv": "^8.20.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -35,6 +37,12 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^10.1.2",
+    "pdfkit": "^0.20.2",
+    "svg-to-pdfkit": "^0.1.8",
     "ws": "^8.21.0"
+  },
+  "devDependencies": {
+    "vite": "^7.3.7",
+    "vitest": "^5.0.5"
   }
 }

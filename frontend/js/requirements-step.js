@@ -162,6 +162,11 @@
                 <select data-req-field="covered_parking" data-ps-searchable>${selectOpts(['Yes', 'No', 'Partial'], req.covered_parking)}</select></div>
               <div class="ps-field"><label>EV Charging</label>
                 <select data-req-field="ev_charging" data-ps-searchable>${selectOpts(['Yes', 'No', 'Future Provision'], req.ev_charging)}</select></div>
+              <div class="ps-field"><label>Sitout</label>
+                <select data-req-field="sitout">${selectOpts(['No', 'Yes'], req.sitout || 'No')}</select></div>
+              <div class="ps-field"><label>Staircase / terrace access</label>
+                <select data-req-field="staircase">${selectOpts(['No', 'Yes'], req.staircase || 'No')}</select>
+                <small>Stairs are included automatically for multiple floors.</small></div>
             </div>
             <div class="ps-features rq-check-grid">
               ${model.PARKING_CHECKS.map((c) => `

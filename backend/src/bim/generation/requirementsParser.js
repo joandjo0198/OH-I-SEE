@@ -40,20 +40,15 @@ function normalizeRoadFacing(value) {
 }
 
 function parseBedrooms(label) {
-  const m = String(label ?? '').match(/(\d+)/);
-  return m ? Math.min(10, parseInt(m[1], 10)) : 3;
+  return require('../../cad/inputNormalizer').count(String(label??'').replace(/^(\d+)\+\s*Bedrooms?$/i,'$1'), 'Bedrooms');
 }
 
 function parseBathrooms(label) {
-  const m = String(label ?? '').match(/(\d+)/);
-  return m ? Math.min(10, parseInt(m[1], 10)) : 2;
+  return require('../../cad/inputNormalizer').count(label, 'Bathrooms');
 }
 
 function parseParking(label) {
-  const s = String(label ?? '').toLowerCase();
-  if (s.includes('none') || s.includes('no ')) return 0;
-  const m = s.match(/(\d+)/);
-  return m ? parseInt(m[1], 10) : 1;
+  return require('../../cad/inputNormalizer').count(label, 'Parking');
 }
 
 function ftToM(ft) {
@@ -104,7 +99,7 @@ function fromProject(project) {
   const floors = parseFloorsLabel(answers.floors || project.floors || hr.building?.floors || 'Ground Floor Only');
   const bedrooms = parseBedrooms(answers.qty_bedrooms ?? answers.bedrooms ?? project.bedrooms ?? hr.building?.bedrooms ?? '3 Bedrooms');
   const bathrooms = parseBathrooms(answers.qty_bathrooms ?? answers.bathrooms ?? project.bathrooms ?? hr.building?.bathrooms ?? '2 Bathrooms');
-  const parking = parseParking(answers.car_parking ?? answers.parking ?? project.parking_count ?? hr.building?.parking ?? '1 Car');
+  const parking = parseParking(answers.car_parking ?? answers.parking ?? project.parking_count ?? hr.building?.parking);
 
   const flags = {
     hasPooja: answers.has_pooja === 'Yes' || answers.has_pooja === true || project.has_pooja === true,
@@ -117,7 +112,7 @@ function fromProject(project) {
   const budgetRaw = answers.budget || project.budget || hr.budget?.amount || 0;
 
 
-  const count = (key, fallback) => Math.max(0, Math.min(10, Number(answers[key] ?? answers.room_quantities?.[key] ?? fallback)));
+  const count = (key, fallback) => require('../../cad/inputNormalizer').count(answers[key] ?? answers.room_quantities?.[key] ?? fallback, key);
   const rooms = [];
   function add(name, type, qty, sizeKey, lengthFt, widthFt) {
     for (let i = 0; i < qty; i++) {
@@ -131,9 +126,9 @@ function fromProject(project) {
       rooms.push({ name: qty > 1 ? name+' '+(i+1) : name, type, storeyIndex: 0, lengthFt: lengthFt * scale, widthFt: widthFt * scale, sizeSource:supplied?'user-area':'assumed', requestedAreaSqFt:supplied?area:null, dimensionsProposed:true, autoSized:!!exact });
     }
   }
-  add('Living Room','living',count('qty_living',1),'size_living',16,14);
-  add('Kitchen','kitchen',count('qty_kitchen',1),'size_kitchen',12,10);
-  add('Dining','dining',count('qty_dining',1),'size_dining',12,10);
+  add('Living Room','living',count('qty_living',answers.cad_model_version?0:1),'size_living',16,14);
+  add('Kitchen','kitchen',count('qty_kitchen',answers.cad_model_version?0:1),'size_kitchen',12,10);
+  add('Dining','dining',count('qty_dining',answers.cad_model_version?0:1),'size_dining',12,10);
   add('Master Bedroom','bedroom',Math.min(1,bedrooms),'size_master_bedroom',12,11);
   add('Bedroom','bedroom',Math.max(0,bedrooms-1),'size_bedroom_2',12,11);
   add('Bathroom','bathroom',bathrooms,'',answers.room_dimensions?6.5:8,answers.room_dimensions?4:6);
@@ -142,11 +137,12 @@ function fromProject(project) {
   add('Guest Room','guest',count('qty_guest',0),'',12,10);
   if(flags.hasTerrace) add('Terrace','terrace',1,'',14,12);
   add('Car Parking','parking',parking,'',18,10);
-  add('Two Wheeler Parking','parking',Math.min(6,Number(answers.two_wheeler_parking)||0),'',6,3);
+  add('Two Wheeler Parking','parking',count('two_wheeler_parking',0),'',7,3.5);
   for(const r of (Array.isArray(answers.custom_rooms)?answers.custom_rooms:[])) {
     const area=Number(r.size || r.area || r.area_sqft);
-    add(String(r.name || r.label || 'Additional Room').replace(/[<>]/g,''),'other',Math.min(10,Number(r.quantity || r.qty || 1)),'',area>0?Math.sqrt(area):10,area>0?Math.sqrt(area):10);
-    const qty=Math.min(10,Number(r.quantity || r.qty || 1));
+    const qty=require('../../cad/inputNormalizer').count(r.quantity ?? r.qty, 'Custom room quantity');
+    if(!qty)continue;
+    add(String(r.name || r.label || 'Additional Room').replace(/[<>]/g,''),'other',qty,'',area>0?Math.sqrt(area):10,area>0?Math.sqrt(area):10);
     for(const room of rooms.slice(-qty)){room.sizeSource=area>0?'user-area':'assumed';room.requestedAreaSqFt=area>0?area:null;}
   }
   rooms.filter(r=>r.type==='bedroom').forEach((r,i)=>r.storeyIndex=Math.min(floors-1,Math.floor(i/2)));
@@ -172,11 +168,14 @@ function fromProject(project) {
     },
     building: {
       floors,
+      cadEngine: answers.cad_model_version === 1,
+      sitoutRequested: answers.sitout === 'Yes' || answers.sitout === true,
+      stairsRequested: answers.staircase === 'Yes' || answers.staircase === true,
       ...(land.frontage_ft && land.depth_ft && land.road_facing==='North' ? {layoutStrategy:'frontage-corridor'} : {}),
       builtUpAreaSqFt:Number(answers.built_up_area ?? project.built_up_area)||0,
       selectedFeatures:[...(Array.isArray(answers.home_features)?answers.home_features:[]),...(Array.isArray(answers.parking_checks)?answers.parking_checks:[])],
       bedrooms,
-      bathrooms: Math.max(1, bathrooms),
+      bathrooms,
       parking,
       architecturalStyle: answers.arch_style || project.architectural_style || 'Contemporary',
       qualityLevel: normalizeQualityLevel(answers.quality || project.quality_level || 'Standard'),

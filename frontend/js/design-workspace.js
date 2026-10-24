@@ -233,7 +233,7 @@
         });
         const generation = await generationResp.json().catch(() => ({}));
         if (!generationResp.ok || generation.success === false) {
-          throw new Error(generation.error || 'Design generation failed. Please retry.');
+          throw new Error([generation.error || 'Design generation failed. Please retry.',...(Array.isArray(generation.details)?generation.details.map(d=>typeof d==='string'?d:d.message||'Invalid input'):[])].join('\n'));
         }
         ctx.bimStatus = generation.data?.status || 'generated';
         if (regenerate) designState.requirements_stale = false;
