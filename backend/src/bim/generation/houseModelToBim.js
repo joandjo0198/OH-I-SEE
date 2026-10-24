@@ -5,6 +5,10 @@ const { newElementId, newGlobalId } = require('../core/ids');
 const { validateBuildingWithinPlot } = require('../validation/spatialValidator');
 const { WALL_HEIGHT_M, SLAB_THICKNESS_M } = require('./houseModelBuilder');
 
+function polygonArea(points=[]) {
+  return Math.abs(points.reduce((sum,p,i)=>{const q=points[(i+1)%points.length];return sum+p.x*q.y-q.x*p.y;},0))/2;
+}
+function netArea(boundary,holes=[]) {return polygonArea(boundary)-holes.reduce((sum,h)=>sum+polygonArea(h),0);}
 function ts() {
   return new Date().toISOString();
 }
@@ -188,6 +192,7 @@ function houseModelToBim(house, requirements = {}) {
       geometry: {
         kind: 'parametricSlab',
         boundary: slab.boundary,
+        holes: slab.holes || [],
         thicknessM: slab.thicknessM || SLAB_THICKNESS_M,
       },
       position: { x: floor.footprint.x, y: floor.footprint.y, z: floor.elevationM },
@@ -196,8 +201,8 @@ function houseModelToBim(house, requirements = {}) {
       materialId: 'MAT-CONCRETE',
       properties: { storeyIndex: floor.level },
       quantity: {
-        areaM2: Math.round(floor.footprint.widthM * floor.footprint.depthM * 100) / 100,
-        volumeM3: Math.round(floor.footprint.widthM * floor.footprint.depthM * (slab.thicknessM || SLAB_THICKNESS_M) * 1000) / 1000,
+        areaM2: Math.round(netArea(slab.boundary,slab.holes) * 100) / 100,
+        volumeM3: Math.round(netArea(slab.boundary,slab.holes) * (slab.thicknessM || SLAB_THICKNESS_M) * 1000) / 1000,
       },
       relationships: [],
       createdAt: ts(),
@@ -230,6 +235,7 @@ function houseModelToBim(house, requirements = {}) {
         storeyId,
         geometry: {
           kind: 'space',
+          holes: room.holes || [],
           roomType: room.type,
           boundary: [
             { x: room.x, y: room.y },
@@ -248,7 +254,7 @@ function houseModelToBim(house, requirements = {}) {
           houseRoomId: room.id,
           zone: room.zone || (room.type === 'parking' ? 'parking' : undefined),
         },
-        quantity: { areaM2: Math.round(room.widthM * room.depthM * 100) / 100 },
+        quantity: { areaM2: Math.round((room.widthM * room.depthM-(room.holes||[]).reduce((sum,h)=>sum+polygonArea(h),0)) * 100) / 100 },
         relationships: [],
         createdAt: ts(),
         updatedAt: ts(),
@@ -259,7 +265,7 @@ function houseModelToBim(house, requirements = {}) {
     for (const stair of floor.stairs || []) {
       const id = newElementId('STAIR',seq.v++);
       model.addElement({id,globalId:newGlobalId(),type:'Stair',name:'Stair / Landing',storeyId,
-        geometry:{kind:'parametricStair',flightCount:stair.flightCount||2,riseM:stair.riseM||3},
+        geometry:{kind:'parametricStair',flightCount:stair.flightCount||2,riseM:stair.riseM||3,flightRisers:stair.flightRisers,flightWidthM:stair.flightWidthM,landingM:stair.landingM,treadM:stair.treadM,riserM:stair.riserM},
         position:{x:stair.x,y:stair.y,z:floor.elevationM},rotation:{x:0,y:0,z:0},
         dimensions:{lengthM:stair.widthM,widthM:stair.depthM,heightM:stair.riseM||3},
         properties:{storeyIndex:floor.level,houseStairId:stair.id},quantity:{count:1},relationships:[],createdAt:ts(),updatedAt:ts()});
@@ -354,6 +360,7 @@ function houseModelToBim(house, requirements = {}) {
       storeyId: null,
       geometry: {
         kind: 'parametricRoof',
+        holes: r.holes || [],
         roofType: r.type || 'flat',
         boundary: [
           { x: b.x, y: b.y },
@@ -368,7 +375,7 @@ function houseModelToBim(house, requirements = {}) {
       dimensions: { thicknessM: r.thicknessM || 0.2 },
       materialId: 'MAT-ROOF',
       properties: { roofType: r.type },
-      quantity: { areaM2: Math.round(b.widthM * b.depthM * 100) / 100 },
+      quantity: { areaM2: Math.round((b.widthM * b.depthM-(r.holes||[]).reduce((sum,h)=>sum+polygonArea(h),0)) * 100) / 100 },
       relationships: [],
       createdAt: ts(),
       updatedAt: ts(),

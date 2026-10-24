@@ -62,3 +62,27 @@ describe('CAD project workflow',()=>{
   const bytes=await pdf(p);expect(bytes.subarray(0,4).toString()).toBe('%PDF');
  });
 });
+
+describe('multi-floor stairwell geometry',()=>{
+ function multi(floors,facing='East',roofAccess=false){const r=brief(40,60,facing);r.building.floors=floors;r.building.stairsRequested=roofAccess;r.rooms=r.rooms.filter((room,i)=>i<3||room.type==='bathroom');const base=r.rooms;r.rooms=Array.from({length:floors},(_,floor)=>base.map(room=>({...room,name:room.name+' '+floor,storeyIndex:floor}))).flat();return r;}
+ it.each(['East','West','North','South'])('saves three floors, aligned voids and net slab quantities facing %s',facing=>{
+   const model=generate(multi(3,facing)),p=model.metadata.cadPlan,h=model.metadata.houseModel;
+   expect(p.validation.valid).toBe(true);expect(p.slabOpenings).toHaveLength(2);
+   expect(h.floors[0].slab.holes).toHaveLength(0);expect(h.floors[1].slab.holes).toHaveLength(1);expect(h.floors[2].slab.holes).toEqual(h.floors[1].slab.holes);
+   expect(h.floors[2].stairs).toHaveLength(0);expect(h.roof.holes).toHaveLength(0);
+   expect(auditProgram(model,multi(3,facing)).matches).toBe(true);
+   const floor=h.floors[1],hole=floor.slab.holes[0],area=(hole[1].x-hole[0].x)*(hole[2].y-hole[1].y);
+   const slab=model.elements.find(e=>e.type==='Slab'&&e.properties.storeyIndex===1);
+   expect(slab.quantity.areaM2).toBeCloseTo(floor.footprint.widthM*floor.footprint.depthM-area,2);
+   expect(slab.quantity.volumeM3).toBeCloseTo((floor.footprint.widthM*floor.footprint.depthM-area)*.15,3);
+   expect(slab.geometry.holes).toEqual(floor.slab.holes);
+   const space=model.elements.find(e=>e.type==='Room'&&e.properties.storeyIndex===1&&e.properties.roomType==='stair');expect(space.geometry.holes).toEqual(slab.geometry.holes);
+ });
+ it('creates a roof opening only when roof access is selected',()=>{const m=generate(multi(2,'North',true));expect(m.metadata.houseModel.roof.holes).toHaveLength(1);expect(m.elements.find(e=>e.type==='Roof').geometry.holes).toHaveLength(1);expect(m.metadata.houseModel.floors[1].stairs).toHaveLength(1);});
+ it('rejects missing, shifted, duplicate and orphan stair openings before export',()=>{
+   for(const corrupt of [p=>p.slabOpenings=[],p=>p.slabOpenings[0].x+=50,p=>p.slabOpenings.push({...p.slabOpenings[0]}),p=>p.slabOpenings[0].floor=0]){
+     const p=layoutEngine(multi(2));corrupt(p);expect(validate(p).valid).toBe(false);expect(()=>dxf(p)).toThrow();
+   }
+ });
+ it('preserves holes through a saved JSON round trip',()=>{const m=generate(multi(2));const p=JSON.parse(JSON.stringify(m.toJSON())).metadata.cadPlan;expect(validate(p).valid).toBe(true);expect(sheets(p,{floor:1})).toHaveLength(4);});
+});

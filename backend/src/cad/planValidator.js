@@ -40,10 +40,24 @@ function validate(plan) {
     if(s.riser>rules.stair.maxRiser||s.tread<rules.stair.minTread||s.width<1000||s.landing<s.width||s.headroom<2200)issues.push(`${s.id}: stair dimensions fail the project criteria.`);
     if(plan.stairs.some(t=>t.x!==s.x||t.y!==s.y||t.w!==s.w||t.h!==s.h))issues.push('Stairs are not vertically aligned.');
   }
+  if(plan.input.stairsRequested)for(const floor of plan.floors){
+    if(plan.stairs.filter(s=>s.floor===floor.index).length!==1)issues.push(`Floor ${floor.index+1}: a connected stairwell is required.`);
+  }
+  for(const stair of plan.stairs) {
+    const expectedArrival=stair.floor===plan.floors.length-1 && !plan.input.roofAccess;
+    if(stair.arrivalOnly!==expectedArrival)issues.push(`${stair.id}: invalid stair destination.`);
+    if(expectedArrival)continue;
+    const site=require('./siteCalc').siteCalc(plan.input),v=site.rect(stair,site.toView);
+    const required=site.rect({x:v.x,y:v.y+stair.landing,w:v.w,h:v.h-stair.landing});
+    const openings=(plan.slabOpenings||[]).filter(o=>o.floor===stair.floor+1&&o.stairId===stair.id);
+    if(openings.length!==1||!['x','y','w','h'].every(k=>openings[0][k]===required[k]))issues.push(`${stair.id}: missing or misaligned upper slab opening.`);
+    if(stair.height-150<rules.stair.headroom)issues.push(`${stair.id}: insufficient clearance between stacked flights.`);
+  }
+  for(const o of plan.slabOpenings||[])if(!inside(o,e)||!plan.stairs.some(s=>s.id===o.stairId&&!s.arrivalOnly&&o.floor===s.floor+1))issues.push(`${o.id}: invalid slab opening.`);
   for(const f of plan.floors)if(f.clearHeight<rules.clearHeight)issues.push(`Floor ${f.index+1}: insufficient clear height.`);
   for(const p of plan.parking)if(!inside(p,plan.plot)||overlap(p,e))issues.push(`${p.id}: parking overlaps the building or plot boundary.`);
   for(const f of plan.fixtures){const r=rooms.find(r=>r.id===f.roomId);if(!r||!inside(f,r))issues.push(`${f.kind}: fixture outside ${r?.name||'room'}.`);for(const b of plan.fixtures)if(f.id<b.id&&f.roomId===b.roomId&&overlap(f,b))issues.push(`${r?.name}: fixtures ${f.kind}/${b.kind} overlap.`);}
-  return {valid:issues.length===0,issues:[...new Set(issues)],checked:['integer dimensions','envelope','room overlap','clear minima','opening hosts and extents','glazing','door connectivity','stair alignment','fixture bounds'],unverified:['structural adequacy','statutory approval','door swing clearance against furniture','accessible routes','detailed Vastu','stair headroom section']};
+  return {valid:issues.length===0,issues:[...new Set(issues)],checked:['integer dimensions','envelope','room overlap','clear minima','opening hosts and extents','glazing','door connectivity','stair alignment','stair slab openings','stacked flight clearance','fixture bounds'],unverified:['structural adequacy','statutory approval','door swing clearance against furniture','accessible routes','detailed Vastu','stair headroom section']};
 }
 function enforce(plan){const report=validate(plan);if(!report.valid)throw Object.assign(new Error('Drawing validation failed. No replacement plan was saved.'),{status:422,details:report.issues});return report;}
 module.exports={validate,enforce,overlap,inside};

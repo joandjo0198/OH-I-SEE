@@ -15,7 +15,7 @@ function layoutEngine(requirements) {
   const ext=rules.wall.external, part=rules.wall.internal, corridor=rules.corridor.preferred;
   const plan={schemaVersion:1,units:'mm',origin:'SW',facing:input.facing,projectName:input.projectName,input,
     plot:site.worldPlot,envelope:site.rect(e),setbacks:input.setbacks,view:{width:input.width,depth:input.depth},
-    floors:[],rooms:[],walls:[],openings:[],stairs:[],parking:[],fixtures:[],columns:[],grid:[],adjustments:[],warnings:[],
+    floors:[],rooms:[],walls:[],openings:[],stairs:[],slabOpenings:[],parking:[],fixtures:[],columns:[],grid:[],adjustments:[],warnings:[],
     road:{from:site.toWorld(0,0),to:site.toWorld(input.width,0),width:null,label:'ROAD — width to be surveyed'},
     gate:{...site.toWorld(e.x+e.w/2,0),width:1070,mark:'MG'},
     compass:{north:{x:0,y:1},viewNorthAngle:{South:0,East:90,North:180,West:270}[input.facing]},
@@ -138,6 +138,15 @@ function layoutEngine(requirements) {
     plan.parking.push({...parking,...site.rect({x:px,y:0,w,h})});px+=w+150;
   }
   if(input.sitout){const box={x:e.x,y:0,w:e.w,h:Math.min(e.y,1800)};if(box.h<1200||plan.parking.length)fail('Requested sitout needs at least 1200 mm clear depth and a separate parking layout.');plan.sitout={...site.rect(box),source:'input:sitout'};}
+  // Preserve the front landing as solid floor; flights and the intermediate
+  // landing occupy the void above. Top-floor flights exist only for roof access.
+  for(const stair of plan.stairs) {
+    stair.arrivalOnly=stair.floor===input.floors-1 && !input.roofAccess;
+    if(stair.arrivalOnly)continue;
+    const view=site.rect(stair,site.toView);
+    const voidRect=site.rect({x:view.x,y:view.y+stair.landing,w:view.w,h:view.h-stair.landing});
+    plan.slabOpenings.push({id:`VOID-${stair.floor+1}`,floor:stair.floor+1,stairId:stair.id,...voidRect});
+  }
   plan.area=areas(plan);
   plan.warnings.push('Setbacks, FSI and coverage are measured quantities; local permissible limits must be confirmed.', 'Structural columns, foundation design, fire/accessibility compliance and services need qualified review.');
   return plan;

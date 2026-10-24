@@ -31,6 +31,7 @@ function normalize(requirements) {
   return { version: 1, units: 'mm', facing, width, depth, setbacks, floors: b.floors, rooms,
     parking: { cars: parkingRooms.filter(r => !/two wheeler/i.test(r.name)).length, bikes: parkingRooms.filter(r => /two wheeler/i.test(r.name)).length },
     parkingSpaces:parkingRooms.map((r,i)=>({id:`P${i+1}`,name:r.name,kind:/two wheeler/i.test(r.name)?'bike':'car',w:mm(r.widthFt),h:mm(r.lengthFt),source:`rooms:${r.name}`})),
+    roofAccess: b.hasTerrace === true || b.stairsRequested === true,
     sitout: b.sitoutRequested === true, stairsRequested: b.stairsRequested === true || b.floors > 1 || b.hasTerrace === true,
     vastu: b.vastu, projectName: requirements.projectName || 'Residential project',
   };

@@ -122,11 +122,12 @@ function render(plan,{sheet='A-02',floor=0,units='imperial',projectId='',date=ne
         if(r.autoAdded)parts.push(text(q.x,q.y+4,'AUTO-ADDED',1.5,'middle','#586b7d'));
       }
       parts.push('</g><g data-layer="stairs">');
+      for(const opening of plan.slabOpenings||[])if(opening.floor===floor)parts.push(rect(opening,'#a42b86','none','stroke-dasharray="1 .6"'));
       for(const stair of plan.stairs.filter(s=>s.floor===floor)) {
         const geometry=stairGeometry(plan,stair);
         for(const [a,b]of geometry.lines)parts.push(line(p(a),p(b),'#a42b86',.18));
         for(let i=1;i<geometry.arrow.length;i++)parts.push(line(p(geometry.arrow[i-1]),p(geometry.arrow[i]),'#a42b86',.3));
-        const label=p(geometry.label);parts.push(text(label.x,label.y,`UP · ${stair.risers}R @ ${Math.round(stair.riser)} mm`,1.7,'middle','#a42b86'));
+        const label=p(geometry.label);parts.push(text(label.x,label.y,`${stair.arrivalOnly?'DN / ARRIVAL':'UP'} · ${stair.risers}R @ ${Math.round(stair.riser)} mm`,1.7,'middle','#a42b86'));
       }
       parts.push('</g>');
       if(sheet==='A-03'){parts.push('<g data-layer="fixtures">');for(const f of plan.fixtures.filter(f=>f.floor===floor))for(const path of fixturePaths(f.kind)){const points=path.points.map(([x,y])=>p({x:f.x+x*f.w,y:f.y+y*f.h}));parts.push(`<path d="${points.map((q,i)=>`${i?'L':'M'} ${q.x} ${q.y}`).join(' ')}${path.closed?' Z':''}" stroke="#718596" stroke-width=".2" fill="none"/>`);}parts.push('</g>');}

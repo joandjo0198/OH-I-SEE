@@ -10,16 +10,16 @@ const { calculateQuantities } = require('../src/bim/calculations/quantities');
 const demoProject = {
   project_id: 'PRJ-DEMO-001',
   project_name: 'OH I SEE Demo House',
-  plot_length: 40,
-  plot_width: 30,
+  plot_length: 60,
+  plot_width: 50,
   floors: 2,
   bedrooms: 3,
   bathrooms: 2,
   construction_context: {
     intentType: 'NEW_HOME',
     intentAnswers: {
-      plot_length: '40',
-      plot_width: '30',
+      plot_length: '60',
+      plot_width: '50',
       floors: 'G + 1 Floor',
       bedrooms: '3 Bedrooms',
       bathrooms: '2',
@@ -32,7 +32,7 @@ const demoProject = {
 
 test('requirementsParser produces valid structure', () => {
   const req = fromProject(demoProject);
-  assert.ok(req.site.plotLengthFt === 40);
+  assert.ok(req.site.plotLengthFt === 60);
   assert.ok(req.building.bedrooms === 3);
   assert.ok(Array.isArray(req.storeys));
   assert.ok(req.storeys.length >= 2);
@@ -197,13 +197,13 @@ function assertHouseModelBimParity(json) {
   }
 }
 
-test('TEST 1: 30x40 2BHK ground floor with pooja and parking', () => {
-  const prompt = '30x40 plot, 2BHK, ground floor, living room, kitchen, 2 bedrooms, 2 bathrooms, pooja room, parking.';
+test('TEST 1: 50x60 2BHK ground floor with pooja and parking', () => {
+  const prompt = '50x60 plot, 2BHK, ground floor, living room, kitchen, 2 bedrooms, 2 bathrooms, pooja room, parking.';
   const json = generateFromPrompt(prompt);
   const house = json.metadata.houseModel;
 
-  assert.ok(Math.abs(json.site.plotLengthM - 30 * FT) < 0.05, 'plot length 30 ft');
-  assert.ok(Math.abs(json.site.plotWidthM - 40 * FT) < 0.05, 'plot width 40 ft');
+  assert.ok(Math.abs(json.site.plotLengthM - 50 * FT) < 0.05, 'plot length 50 ft');
+  assert.ok(Math.abs(json.site.plotWidthM - 60 * FT) < 0.05, 'plot width 60 ft');
   assert.equal(house.building.bedrooms, 2);
   assert.equal(house.floors.length, 1);
 
@@ -286,4 +286,10 @@ test('TEST 5: move kitchen next to dining updates layout', () => {
   assert.ok(adjacent || (kitchen.x === beforeKitchen.x && kitchen.y === beforeKitchen.y),
     'kitchen should be adjacent to dining or layout regenerated on same storey');
   assertHouseModelBimParity(after);
+});
+
+// The old success fixture offered only 20 x 25 ft after default setbacks,
+// yet requested eight rooms and a parking bay. Rejection is the correct result.
+test('overcrowded 30x40 programme returns a fit error rather than an invalid model',()=>{
+  assert.throws(()=>generateFromPrompt('30x40 plot, 2BHK, ground floor, living room, kitchen, 2 bedrooms, 2 bathrooms, pooja room, parking.'),/does not fit/);
 });

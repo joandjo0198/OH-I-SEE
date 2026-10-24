@@ -1,9 +1,10 @@
 import * as THREE from 'three';
+import {surfaceShape, stairMeshes} from './cad-solid-geometry.js';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { materialForType, applyHomeScene, addHomeLighting } from './bim-materials.js';
 
 const LAYER_TYPES = {
-  Architecture: ['Wall', 'Door', 'Window', 'Room', 'Slab', 'BuildingStorey', 'Roof'],
+  Architecture: ['Wall', 'Door', 'Window', 'Room', 'Slab', 'BuildingStorey', 'Roof', 'Stair'],
   Structure: ['Column', 'Beam', 'Slab', 'Footing'],
   MEP: ['Pipe', 'Duct', 'Cable'],
   Site: ['Site', 'Building'],
@@ -245,18 +246,17 @@ export class BimViewer {
       return mesh;
     }
 
+    if(el.type==='Stair' && el.geometry?.flightRisers) return stairMeshes(el,mat);
+
     if (el.type === 'Slab' && el.geometry?.boundary) {
       const pts = this.boundaryPoints(el.geometry.boundary);
       if (pts.length >= 3) {
-        const shape = new THREE.Shape();
-        shape.moveTo(pts[0].x, -pts[0].y);
-        for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i].x, -pts[i].y);
-        shape.closePath();
+        const shape = surfaceShape(pts, el.geometry.holes || []);
         const thick = el.dimensions?.thicknessM || el.geometry.thicknessM || 0.15;
         const geom = new THREE.ExtrudeGeometry(shape, { depth: thick, bevelEnabled: false });
         geom.rotateX(-Math.PI / 2);
         const mesh = new THREE.Mesh(geom, mat);
-        mesh.position.y = (el.position?.z || 0);
+        mesh.position.y = (el.position?.z || 0) - thick;
         mesh.receiveShadow = true;
         return mesh;
       }
@@ -265,15 +265,12 @@ export class BimViewer {
     if (el.type === 'Roof' && el.geometry?.boundary) {
       const pts = this.boundaryPoints(el.geometry.boundary);
       if (pts.length >= 3) {
-        const shape = new THREE.Shape();
-        shape.moveTo(pts[0].x, -pts[0].y);
-        for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i].x, -pts[i].y);
-        shape.closePath();
+        const shape = surfaceShape(pts, el.geometry.holes || []);
         const thick = el.dimensions?.thicknessM || el.geometry.thicknessM || 0.2;
         const geom = new THREE.ExtrudeGeometry(shape, { depth: thick, bevelEnabled: false });
         geom.rotateX(-Math.PI / 2);
         const mesh = new THREE.Mesh(geom, materialForType('Roof', this.mode));
-        mesh.position.y = el.position?.z || 0;
+        mesh.position.y = (el.position?.z || 0) - thick;
         mesh.castShadow = true;
         mesh.receiveShadow = true;
         return mesh;
@@ -299,10 +296,7 @@ export class BimViewer {
       const boundary = el.geometry?.boundary;
       if (boundary?.length >= 3) {
         const pts = this.boundaryPoints(boundary);
-        const shape = new THREE.Shape();
-        shape.moveTo(pts[0].x, -pts[0].y);
-        for (let i = 1; i < pts.length; i++) shape.lineTo(pts[i].x, -pts[i].y);
-        shape.closePath();
+        const shape = surfaceShape(pts, el.geometry.holes || []);
         const geom = new THREE.ShapeGeometry(shape);
         const mesh = new THREE.Mesh(geom, materialForType('Room', this.mode));
         mesh.rotation.x = -Math.PI / 2;

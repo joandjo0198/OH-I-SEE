@@ -37,7 +37,8 @@ function dxf(plan,{floor=0}={}) {
     block.addText(point3d((a.x+b.x)/2,(a.y+b.y)/2+100),100,String(dim.value),opts('A-DIMS'));
     d.addAlignedDim(point3d(dim.a.x,dim.a.y),point3d(dim.b.x,dim.b.y),{...opts('A-DIMS'),blockName:block.name,offset:dim.offset,styleName:'OHISEE-MM',ActualMeasurement:dim.value});
   }
-  for(const s of plan.stairs.filter(s=>s.floor===floor)){poly(d,s,'A-STAIR');d.addText(point3d(s.x+150,s.y+150),125,`UP ${s.risers}R @ ${Math.round(s.riser)} mm`,opts('A-STAIR'));}
+  for(const opening of plan.slabOpenings||[])if(opening.floor===floor)poly(d,opening,'A-STAIR');
+  for(const s of plan.stairs.filter(s=>s.floor===floor)){poly(d,s,'A-STAIR');d.addText(point3d(s.x+150,s.y+150),125,`${s.arrivalOnly?'DN / ARRIVAL':'UP'} ${s.risers}R @ ${Math.round(s.riser)} mm`,opts('A-STAIR'));}
   d.addLine(point3d(plan.road.from.x,plan.road.from.y),point3d(plan.road.to.x,plan.road.to.y),opts('A-ROAD'));
   d.addText(point3d(plan.gate.x,plan.gate.y),150,'MG',opts('A-DOOR'));
   d.addLine(point3d(plan.plot.w+1500,plan.plot.h-2000),point3d(plan.plot.w+1500,plan.plot.h-500),opts('A-ANNO-NPLT'));
