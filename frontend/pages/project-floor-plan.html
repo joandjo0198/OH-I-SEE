@@ -25,6 +25,40 @@
       <div class="pw-content" id="pw-content"><div class="pw-loading">Loading floor plan…</div></div>
     </main>
   </div>
+  <script>
+    // Classic script: file:// can block the ES module below before it starts.
+    window.FloorPlanBoot = (() => {
+      const file = location.protocol === 'file:';
+      const params = new URLSearchParams(location.search);
+      const id = params.get('projectId') || params.get('id');
+      let timer;
+      function show(title, message) {
+        clearTimeout(timer);
+        document.getElementById('pw-header-name').textContent = title;
+        const content = document.getElementById('pw-content');
+        content.replaceChildren();
+        const panel = document.createElement('section');
+        panel.className = 'pw-stat-card'; panel.setAttribute('role', 'status');
+        const text = document.createElement('p'); text.textContent = message;
+        const link = document.createElement('a'); link.className = 'pw-btn pw-btn-primary';
+        link.href = file ? 'https://oh-i-see-reactvite.vercel.app/pages/customer-portal.html?view=projects' : 'customer-portal.html?view=projects';
+        link.textContent = 'Open My Projects';
+        panel.append(text, link);
+        if (file && id) {
+          const direct = document.createElement('a'); direct.className = 'pw-btn';
+          direct.textContent = 'Open this floor plan online';
+          direct.href = 'https://oh-i-see-reactvite.vercel.app/pages/project-floor-plan.html?projectId=' + encodeURIComponent(id);
+          panel.append(direct);
+        }
+        content.append(panel);
+      }
+      const blocked = file || !id;
+      if (file) show('Open floor plans on the website', 'This page was opened from your computer. Open My Projects on the website, sign in, and select your project to view its floor plan.');
+      else if (!id) show('Select a project', 'Choose a saved project, then open Floor Plan or BIM & Technical.');
+      else timer = setTimeout(() => show('Floor plan could not load', 'Loading took too long. Check your connection and reload, or open the project again from My Projects.'), 30000);
+      return { blocked, show, done: () => clearTimeout(timer) };
+    })();
+  </script>
   <script src="../js/utils/helpers.js"></script>
 
   <script src="../js/api/api-core.js"></script>
@@ -45,7 +79,9 @@
         const res = await BimAPI.getModel(projectId);
         bimData = res.data;
       } catch (e) {
-        bimData = { status: 'none', model: null };
+        const cached = BimAPI.getCachedBim(projectId);
+        if (!cached?.model) throw e;
+        bimData = { status: 'review', model: cached.model };
       }
       const cached = BimAPI.getCachedBim(projectId);
       if (!bimData?.model && cached?.model) {
@@ -213,10 +249,11 @@
     }
 
     async function init() {
+      if (FloorPlanBoot.blocked) return;
       const projectId = ProjectWorkspace.getProjectId();
       if (!projectId || !ProjectWorkspace.requireAuth(projectId)) return;
       project = await ProjectWorkspace.loadProject(projectId);
-      if (!project) return;
+      if (!project) throw new Error('Project not found or unavailable. Open My Projects and select a project you own.');
       document.getElementById('pw-header-id').textContent = project.project_id;
       document.getElementById('pw-header-name').textContent = project.project_name;
       ProjectWorkspace.renderNav('floor-plan', projectId);
@@ -226,7 +263,12 @@
       renderPlan();
     }
 
-    document.addEventListener('DOMContentLoaded', init);
+    async function start() {
+      try { await init(); FloorPlanBoot.done(); }
+      catch (error) { FloorPlanBoot.show('Floor plan unavailable', error.message || 'Could not load this project. Please try again.'); }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start);
+    else start();
   </script>
 </body>
 </html>
