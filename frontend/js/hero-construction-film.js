@@ -8,10 +8,11 @@ if(video&&button){
  const stop=()=>{video.pause();video.classList.remove('is-playing');label('Play');};
  const play=async()=>{
   if(!started){
-   for(const [src,type] of [['/videos/home-static-camera-hd.mp4?v=3','video/mp4']]){const source=document.createElement('source');source.src=src;source.type=type;video.append(source);}
+   for(const [src,type] of [['/videos/home-smooth-construction-v4.mp4','video/mp4']]){const source=document.createElement('source');source.src=src;source.type=type;video.append(source);}
    started=true;video.load();
   }
-  try{video.muted=true;video.playbackRate=0.75;await video.play();video.classList.add('is-playing');label('Pause');}catch{stop();}
+  // The media contains eased 60 fps motion. Slowing it here would drop cadence.
+  try{video.muted=true;video.playbackRate=1;await video.play();video.classList.add('is-playing');label('Pause');}catch{stop();}
  };
  button.addEventListener('click',()=>{if(video.paused)play();else{video.pause();label('Resume');}});
  video.addEventListener('error',()=>{stop();button.hidden=true;});

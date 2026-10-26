@@ -2,6 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+  <script>
+    // Vite serves /images and /videos from public/. A file:// launch cannot
+    // resolve those URLs or run the module-based house animation.
+    if (window.location.protocol === 'file:') {
+      window.location.replace('https://oh-i-see-reactvite.vercel.app/pages/index.html');
+    }
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="OH I SEE — AI Construction Operating Platform. Design, customize, estimate, source materials and connect with verified construction professionals — all from one platform.">
   <title>OH I SEE — AI Construction Operating Platform | Build Your Project, Your Way</title>
@@ -10,7 +17,7 @@
   <link rel="stylesheet" href="../css/home-ai.css">
   <link rel="stylesheet" href="../css/home-architecture.css">
   <link rel="stylesheet" href="../css/home-luxury.css">
-  <link rel="preload" as="image" href="/videos/home-static-camera-poster.png">
+  <link rel="preload" as="image" href="/videos/home-smooth-construction-poster-v4.jpg">
   <link rel="icon" href="/images/logo.png" type="image/png">
 </head>
 <body class="home-dark">
@@ -87,8 +94,8 @@
   ================================================================ -->
   <div class="hero-scroll hero-static" id="hero-scroll">
     <section class="hero-image-only" id="hero" aria-labelledby="hero-heading">
-      <img class="hero-clean-background" src="/videos/home-static-camera-poster.png" alt="Completed modern home with warm lighting, landscaped garden, glass balcony and parked car" width="2160" height="1072" fetchpriority="high">
-      <video id="hero-construction-film" class="hero-construction-film" muted loop playsinline poster="/videos/home-static-camera-poster.png" preload="metadata" aria-hidden="true" tabindex="-1"></video>
+      <img class="hero-clean-background" src="/videos/home-smooth-construction-poster-v4.jpg" alt="Completed modern home with warm lighting, landscaped garden, glass balcony and parked car" width="1920" height="954" fetchpriority="high">
+      <video id="hero-construction-film" class="hero-construction-film" muted loop playsinline poster="/videos/home-smooth-construction-poster-v4.jpg" preload="metadata" aria-hidden="true" tabindex="-1"></video>
       <div class="hero-copy-scrim" aria-hidden="true"></div>
       <button type="button" id="hero-film-control" class="hero-film-control" aria-label="Play house construction animation">Play construction</button>
       <div class="hero-copy-wrapper">
