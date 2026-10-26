@@ -1,22 +1,45 @@
-// Full-width prepared loop; the page's text and controls remain live HTML.
-const video=document.getElementById('hero-construction-film');
-const button=document.getElementById('hero-film-control');
-const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-if(video&&button){
- let started=false,resumeWhenVisible=false;
- const label=text=>{button.textContent=text;button.setAttribute('aria-label',text+' construction animation');};
- const stop=()=>{video.pause();video.classList.remove('is-playing');label('Play');};
- const play=async()=>{
-  if(!started){
-   for(const [src,type] of [['/videos/home-smooth-construction-v4.mp4','video/mp4']]){const source=document.createElement('source');source.src=src;source.type=type;video.append(source);}
-   started=true;video.load();
+import {constructionFrame, constructionSvg} from './hero-rigid-construction.mjs';
+
+const hero = document.getElementById('hero');
+const button = document.getElementById('hero-film-control');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+if (hero && button) {
+  // No video, camera motion, per-frame warping, or interpolated building edges.
+  hero.insertAdjacentHTML('afterbegin', constructionSvg());
+  const scene = hero.querySelector('.hero-rigid-construction');
+  const groups = [...scene.querySelectorAll('[data-construction-stage]')];
+  let elapsed = 0, previous = null, frame = null;
+  let playing = !reduced.matches && !navigator.connection?.saveData;
+  let visible = true;
+  function paint() {
+    const state = constructionFrame(elapsed);
+    groups.forEach((group, i) => {
+      group.querySelector('[data-shade]').setAttribute('opacity', state.layers[i].shade.toFixed(4));
+      const lines = group.querySelector('[data-lines]');
+      lines.setAttribute('opacity', state.layers[i].line.toFixed(4));
+      lines.setAttribute('stroke-dashoffset', (1-state.layers[i].draw).toFixed(4));
+    });
+    button.textContent = playing ? 'Pause' : 'Play construction';
+    button.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} house construction reveal`);
+    button.setAttribute('aria-pressed', String(playing));
   }
-  // The media contains eased 60 fps motion. Slowing it here would drop cadence.
-  try{video.muted=true;video.playbackRate=1;await video.play();video.classList.add('is-playing');label('Pause');}catch{stop();}
- };
- button.addEventListener('click',()=>{if(video.paused)play();else{video.pause();label('Resume');}});
- video.addEventListener('error',()=>{stop();button.hidden=true;});
- document.addEventListener('visibilitychange',()=>{if(document.hidden){resumeWhenVisible=!video.paused;video.pause();}else if(resumeWhenVisible){resumeWhenVisible=false;play();}});
- reduced.addEventListener('change',()=>{if(reduced.matches){resumeWhenVisible=false;stop();}});
- if(!reduced.matches&&!navigator.connection?.saveData)play();
+  function tick(now) {
+    if (previous !== null) elapsed += Math.min((now-previous)/1000, .1);
+    previous = now;
+    paint();
+    frame = requestAnimationFrame(tick);
+  }
+  function sync() {
+    if (frame !== null) cancelAnimationFrame(frame);
+    frame = null; previous = null;
+    paint();
+    if (playing && visible && !document.hidden) frame = requestAnimationFrame(tick);
+  }
+  button.addEventListener('click', () => { playing = !playing; sync(); });
+  document.addEventListener('visibilitychange', sync);
+  reduced.addEventListener('change', () => { if(reduced.matches){playing=false;elapsed=0;} sync(); });
+  const observer = new IntersectionObserver(entries => {visible=entries[0].isIntersecting;sync();});
+  observer.observe(hero);
+  window.addEventListener('pagehide', () => {if(frame!==null)cancelAnimationFrame(frame);observer.disconnect();});
+  sync();
 }
