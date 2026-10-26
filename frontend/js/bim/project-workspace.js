@@ -6,6 +6,7 @@ const ProjectWorkspace = {
   MODULES: [
     { id: 'overview', title: 'Overview', icon: '📋', page: 'project-overview.html' },
     { id: 'soil', title: 'Soil & Geotechnical', icon: '🌱', page: 'project-soil-geotechnical.html' },
+    { id: 'template-planner', title: 'Adaptive Floor Planner', icon: '▧', page: 'template-planner.html' },
     { id: 'floor-plan', title: 'Floor Plan', icon: '📐', page: 'project-floor-plan.html' },
     { id: 'studio', title: '2D Design / 3D Visualizer', icon: '▧', page: 'visualizer-3d.html' },
     { id: '3d', title: '3D Home', icon: '🏠', page: 'project-3d.html' },

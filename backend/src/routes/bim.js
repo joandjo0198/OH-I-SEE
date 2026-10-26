@@ -7,6 +7,7 @@ const bimService = require('../services/bimService');
 const router = express.Router({ mergeParams: true });
 
 router.use(authenticate);
+router.use('/template',require('./templatePlan'));
 
 // All drawing formats come from the saved, owner-scoped canonical plan.
 router.get('/cad', async (req,res) => {

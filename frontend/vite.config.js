@@ -53,6 +53,8 @@ export default defineConfig({
         projectBim: './pages/project-bim.html',
         project3d: './pages/project-3d.html',
         projectFloorPlan: './pages/project-floor-plan.html',
+        templatePlanner: './pages/template-planner.html',
+        templateAReview: './pages/template-a-review.html',
         projectBoq: './pages/project-boq.html',
         projectCost: './pages/project-cost.html',
         projectMaterials: './pages/project-materials.html',
