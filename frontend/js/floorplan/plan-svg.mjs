@@ -4,7 +4,7 @@ import {fixtureSVG} from './interior/fixture-model.mjs';
 import {byId} from './interior/catalog.js';
 export const esc = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function feet(value){const inches=Math.round(value*12);return `${Math.floor(inches/12)}′${inches%12?inches%12+'″':''}`;}
-export function planSVG(p,{selected=null,image=null,overlay=false}={}) {
+export function planSVG(p,{selected=null,image=null,overlay=false,editable=false}={}) {
  const {width,depth,facing,roadSide}=p.plot, wallColor='#2022ad';
  const legend=[...new Set((p.fixtures||[]).map(f=>f.catalogId))].map(id=>byId[id]).filter(Boolean),extra=legend.length?Math.ceil(legend.length/2)*.9+1:0;
  const rotation=({North:180,South:0,East:-90,West:90}[facing]??0);
@@ -46,6 +46,7 @@ export function planSVG(p,{selected=null,image=null,overlay=false}={}) {
 
  s+=fixtureSVG(p);if(legend.length){s+=text(width/2,depth+6.3,'FIXTURE SYMBOL LEGEND',.5);legend.forEach((d,i)=>{s+=text((i%2?3:1)*width/4,depth+7.3+Math.floor(i/2)*.9,d.symbol+' · '+d.name,.42);});}
  if(p.roof?.show2D){const r=roofEstimate(p);s+=`<g pointer-events="none"><rect x="${r.x}" y="${r.y}" width="${r.width}" height="${r.depth}" fill="none" stroke="${r.color}" stroke-width=".2" stroke-dasharray=".5 .3"/>${r.style==='gable'?line(r.x+r.width/2,r.y,r.x+r.width/2,r.y+r.depth,r.color,.15):''}${text(r.x+r.width/2,r.y-.6,r.style+' roof · '+r.surface.toFixed(0)+' sq.ft',.55)}</g>`;}
+ if(editable)for(const o of p.openings){const w=p.walls.find(w=>w.id===o.wallId);if(!w)continue;const at=w.start+o.offset+o.width/2;s+=`<circle data-opening="${esc(o.id)}" cx="${w.axis==='h'?at:w.at}" cy="${w.axis==='h'?w.at:at}" r=".32" fill="${['window','vent'].includes(o.kind)?'#0b8ca3':'#be7924'}" stroke="white" stroke-width=".08" style="cursor:grab"><title>Drag ${esc(o.kind)} to a wall</title></circle>`;}
  const top=cy-vh/2,bottom=cy+vh/2;
  s+='</g>';
  const sheetText=(y,value,size,bold=false)=>`<text x="${cx}" y="${y}" font-family="Georgia,serif" font-size="${size}" text-anchor="middle" fill="#17251d" ${bold?'font-weight="bold"':''}>${esc(value)}</text>`;

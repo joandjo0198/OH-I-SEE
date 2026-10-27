@@ -1,0 +1,23 @@
+import {promptEdit,rotateRoom,resizeRoomArea,moveOpening} from './design-edits.mjs';
+export function mountDesignEdits({getPlan,getSelected,apply,draw,notify}){
+ const panel=document.createElement('section');panel.className='panel';panel.setAttribute('aria-label','Layout customization');
+ panel.innerHTML='<h2>Customize your 2D plan</h2><button type="button" data-rotate>Rotate selected room 90°</button><label>Selected room area · sq ft<input data-area type="number" min="1" step=".25"></label><button type="button" data-resize>Apply room area</button><p>Area changes keep width fixed and snap depth to 3 inches. Rotation keeps the room centre fixed. Changes need free space.</p><label>Describe a layout change<textarea data-prompt rows="4" placeholder="Increase Living room by 20 sqft"></textarea></label><p>Use exact room names. One command at a time:</p><ul><li>Rotate Living room 90 degrees</li><li>Increase Living room by 20 sqft</li><li>Decrease Kitchen by 10 sqft</li><li>Set Bedroom to 120 sqft</li><li>Add room Study 10 x 10 ft</li><li>Add door to Living room top offset 1 width 3</li><li>Add window to Kitchen left offset 2 width 4</li></ul><button type="button" data-preview>Preview change</button><button type="button" data-apply disabled>Apply preview</button><button type="button" data-cancel>Cancel preview</button><p data-result role="status" aria-live="polite"></p><p>Drag the gold door or blue window handle onto a wall to reposition it. The opening must fit without intersecting another opening. Wall sides refer to the plan coordinates, before facing rotation.</p>';
+ document.querySelector('#room-form').before(panel);
+ const q=s=>panel.querySelector(s);let pending=null,source=null,drag=null;
+ function clear(){pending=null;source=null;q('[data-apply]').disabled=true;}
+ function sync(){clear();const r=getPlan().rooms.find(r=>r.id===getSelected());q('[data-area]').value=r?(r.width*r.depth).toFixed(2):'';}
+ function run(fn){try{clear();apply(fn());notify('Layout updated. Review openings and use Undo edit to restore.');return true;}catch(e){draw();notify(e.message,true);return false;}}
+ q('[data-rotate]').onclick=()=>run(()=>rotateRoom(getPlan(),getSelected()));
+ q('[data-resize]').onclick=()=>run(()=>resizeRoomArea(getPlan(),getSelected(),Number(q('[data-area]').value)));
+ q('[data-preview]').onclick=()=>{clear();try{const result=promptEdit(getPlan(),q('[data-prompt]').value);pending=result.plan;source=JSON.stringify(getPlan());q('[data-result]').textContent=result.summary+' Preview only — apply to save the draft.';draw(pending);q('[data-apply]').disabled=false;}catch(e){draw();q('[data-result]').textContent=e.message;notify(e.message,true);}};
+ q('[data-apply]').onclick=()=>{if(!pending)return;if(source!==JSON.stringify(getPlan())){clear();draw();notify('The plan changed. Preview the command again.',true);return;}const next=pending;clear();if(run(()=>next))q('[data-result]').textContent='Change applied. Saved in this browser; export JSON to keep a copy.';};
+ q('[data-cancel]').onclick=()=>{clear();draw();q('[data-result]').textContent='Preview cancelled.';};
+ q('[data-prompt]').oninput=()=>{if(pending){clear();draw();}};
+ const host=document.getElementById('plan-host');
+ const point=e=>new DOMPoint(e.clientX,e.clientY).matrixTransform(host.querySelector('[data-plan-geometry]').getScreenCTM().inverse());
+ host.addEventListener('pointerdown',e=>{const hit=e.target.closest('[data-opening]');if(!hit)return;e.stopImmediatePropagation();e.preventDefault();if(pending){clear();draw();notify('Preview cancelled. Drag again to edit the current plan.');return;}drag={id:hit.dataset.opening,before:structuredClone(getPlan()),candidate:null,error:null};host.setPointerCapture(e.pointerId);},true);
+ host.addEventListener('pointermove',e=>{if(!drag)return;e.stopImmediatePropagation();const pt=point(e),walls=drag.before.walls.map(w=>({w,d:Math.hypot((w.axis==='h'?pt.y:pt.x)-w.at,Math.max(w.start-(w.axis==='h'?pt.x:pt.y),(w.axis==='h'?pt.x:pt.y)-w.end,0))})).sort((a,b)=>a.d-b.d);try{if(!walls[0]||walls[0].d>1.5)throw Error('Drop within 1.5 ft of a wall.');const w=walls[0].w;drag.candidate=moveOpening(drag.before,drag.id,w.id,w.axis==='h'?pt.x:pt.y);drag.error=null;draw(drag.candidate);}catch(e){drag.candidate=null;drag.error=e.message;draw();}},true);
+ host.addEventListener('pointerup',e=>{if(!drag)return;e.stopImmediatePropagation();const done=drag;drag=null;if(done.candidate)run(()=>done.candidate);else{draw();if(done.error)notify(done.error,true);}},true);
+ host.addEventListener('pointercancel',e=>{if(drag){e.stopImmediatePropagation();drag=null;draw();}},true);
+ sync();return {sync};
+}

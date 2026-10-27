@@ -1,3 +1,4 @@
+import {mountDesignEdits} from './design-edit-panel.mjs';
 import {mountOpeningEditor} from './opening-editor.mjs';
 import {mountReferenceShell} from './reference-shell.mjs';
 import {mountRoofPanel} from './roof-panel.mjs';
@@ -10,7 +11,7 @@ import {planSVG,esc,feet} from './plan-svg.mjs';
 const projectId=new URLSearchParams(location.search).get('projectId');
 const $=id=>document.getElementById(id);
 let key=projectId?'ohisee_studio_'+projectId+'_0':'ohisee_floorplan_studio_v1';
-let openingEditor;
+let openingEditor,designEdits;
 let plan=referencePlan(),selected=plan.rooms[0].id,viewer=null,image=null,busy=false,undo=[];
 const notice=(message,error=false)=>{$('notice').textContent=message;$('notice').hidden=!message;$('notice').classList.toggle('error',error);};
 const download=(data,name,type)=>{const url=URL.createObjectURL(new Blob([data],{type})),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);};
@@ -19,8 +20,8 @@ $('open-finishes').onclick=()=>finishPanel.open();
 function persist(){try{localStorage.setItem(key,JSON.stringify(plan));$('save-state').textContent='Draft saved in this browser · '+new Date().toLocaleTimeString();}catch{$('save-state').textContent='Browser storage is full. Export JSON to keep this plan.';}}
 function dispose(){viewer?.dispose();viewer=null;finishPanel.sync();}
 function show2D(){ $('final-tools').hidden=true;$('view-final').setAttribute('aria-pressed','false');interior.hide(); $('plan-host').hidden=false;$('model-host').hidden=true;$('model-tools').hidden=true;$('view-2d').setAttribute('aria-pressed','true');$('view-3d').setAttribute('aria-pressed','false');$('canvas-help').textContent='Drag a room to move it · Drag a wall to resize · Click a room to edit';}
-function draw(){ $('plan-host').innerHTML=planSVG(plan,{selected,image,overlay:$('show-overlay').checked});$('print-plan').innerHTML=planSVG(plan); }
-function inspector(){const r=plan.rooms.find(r=>r.id===selected);if(!r)return;for(const k of ['name','width','depth','x','y'])$('room-'+k).value=r[k];$('known-width').value=r.width;$('room-list').innerHTML=plan.rooms.map(r=>`<button class="${r.id===selected?'selected':''}" data-select="${esc(r.id)}"><span>${esc(r.name)}</span><span>${feet(r.width)} × ${feet(r.depth)}</span></button>`).join('');}
+function draw(preview=plan){ $('plan-host').innerHTML=planSVG(preview,{selected,image,overlay:$('show-overlay').checked,editable:true});$('print-plan').innerHTML=planSVG(plan); }
+function inspector(){designEdits?.sync();const r=plan.rooms.find(r=>r.id===selected);if(!r)return;for(const k of ['name','width','depth','x','y'])$('room-'+k).value=r[k];$('known-width').value=r.width;$('room-list').innerHTML=plan.rooms.map(r=>`<button class="${r.id===selected?'selected':''}" data-select="${esc(r.id)}"><span>${esc(r.name)}</span><span>${feet(r.width)} × ${feet(r.depth)}</span></button>`).join('');}
 function render(save=false){
  plan.fixtures ||= []; interior.sync();roofPanel.sync();openingEditor?.sync();
  selected=plan.rooms.some(r=>r.id===selected)?selected:plan.rooms[0].id;draw();inspector();
@@ -53,7 +54,7 @@ $('calibrate').onclick=()=>{try{const width=Number($('known-width').value),r=pla
 $('import-json').onchange=async e=>{try{const f=e.target.files[0];if(!f)return;if(f.size>2e6)throw Error('Plan JSON must be smaller than 2 MB.');accept(JSON.parse(await f.text()));notice('Plan imported.');}catch(e){notice(e.message,true);}e.target.value='';};
 $('reviewed').onchange=e=>{plan.reviewed=e.target.checked;persist();};$('convert').onclick=convert;$('view-3d').onclick=convert;$('view-2d').onclick=show2D;
 document.querySelectorAll('[data-camera]').forEach(b=>b.onclick=()=>viewer?.setMode(b.dataset.camera));$('roof').onclick=()=>viewer?.toggleRoof();$('sun').oninput=e=>viewer?.setSun(Number(e.target.value));
-$('show-overlay').onchange=draw;
+$('show-overlay').onchange=()=>draw();
 $('export-json').onclick=()=>download(JSON.stringify(plan,null,2),'ohisee-floor-plan.json','application/json');
 $('export-pdf').onclick=()=>{ $('print-plan').innerHTML=planSVG(plan);window.print();};
 for(const kind of ['glb','obj','png'])$('export-'+kind).onclick=async()=>{try{if(!viewer)throw Error('Convert the reviewed plan to 3D first.');if(kind==='png'){const a=document.createElement('a');a.href=viewer.png();a.download='ohisee-house.png';a.click();}else download(await viewer[kind](),'ohisee-house.'+kind,kind==='glb'?'model/gltf-binary':'text/plain');notice(kind.toUpperCase()+' exported.');}catch(e){notice(e.message,true);}};
@@ -83,6 +84,7 @@ $('final-png').onclick=()=>{if(!viewer)return;const src=viewer.png(),a=document.
 window.addEventListener('pagehide',()=>{interior.hide();dispose();});render();
 
 mountReferenceShell({getPlan:()=>plan,getViewer:()=>viewer,notify:notice});
+designEdits=mountDesignEdits({getPlan:()=>plan,getSelected:()=>selected,apply:accept,draw,notify:notice});
 openingEditor=mountOpeningEditor({getPlan:()=>plan,apply:accept,notify:notice});
 
 // Project-linked studio: keep each floor's editable draft separate from the reference demo.
