@@ -1,6 +1,7 @@
+import {byId} from './interior/catalog.js';
 import {clone,rebuildWalls,validatePlan,envelope} from './model.mjs';
 import {editOpening} from './opening-editor.mjs';
-import {validateFixtures} from './interior/fixture-model.mjs';
+import {makeFixture,validateFixtures} from './interior/fixture-model.mjs';
 const snap=n=>Math.round(n*4)/4;
 const intersect=(a,b)=>Math.min(a.x+a.width,b.x+b.width)-Math.max(a.x,b.x)>.02&&Math.min(a.y+a.depth,b.y+b.depth)-Math.max(a.y,b.y)>.02;
 export function validateEdit(before,next){
@@ -78,13 +79,41 @@ export function moveOpening(p,id,wallId,center){
  const next=editOpening(p,{...o,id,roomId:r.id,side,offset:start-(w.axis==='h'?r.x:r.y),swing:o.swing||'inside',kind:o.kind==='pocket'?'door':o.kind});
  return validateEdit(p,next);
 }
-export function promptEdit(p,text){
- const command=text.trim().replace(/[.!]$/,'');let m,next,summary;
- if(m=command.match(/^rotate (.+?)(?: by)? 90(?: degrees)?$/i)){const r=findRoom(p,m[1]);next=rotateRoom(p,r.id);summary='Rotate '+r.name+' 90° clockwise about its centre.';}
+export function deleteOpening(p,roomId,kind,index){
+ const ids=new Set(p.walls.filter(w=>w.owners.includes(roomId)).map(w=>w.id));
+ const matches=p.openings.filter(o=>ids.has(o.wallId)&&(kind==='door'?['door','main','pocket'].includes(o.kind):o.kind==='window'));
+ if(!matches.length)throw Error('No '+kind+' exists in this room.');
+ if(index===undefined&&matches.length>1)throw Error('This room has '+matches.length+' '+kind+'s. Specify a number, for example: Delete '+kind+' 1 from selected room.');
+ if(index!==undefined&&(!Number.isInteger(index)||index<1))throw Error('Opening numbers start at 1.');
+ const target=matches[(index||1)-1];if(!target)throw Error('Choose an opening number from 1 to '+matches.length+'.');
+ const next=clone(p);next.openings=next.openings.filter(o=>o.id!==target.id);return validateEdit(p,next);
+}
+export function addFurniture(p,roomId,catalogId){
+ const r=p.rooms.find(r=>r.id===roomId),d=byId[catalogId];if(!r||!d)throw Error('Choose a room and supported furniture.');
+ const [width,,depth]=d.size,next=clone(p),occupied=(p.fixtures||[]).filter(f=>f.mount==='floor').map(f=>{const size=byId[f.catalogId].size,a=f.rotation*Math.PI/180,w=(Math.abs(Math.cos(a))*size[0]+Math.abs(Math.sin(a))*size[2])*f.scale,h=(Math.abs(Math.sin(a))*size[0]+Math.abs(Math.cos(a))*size[2])*f.scale;return {x:f.position.x-w/2,y:f.position.y-h/2,width:w,depth:h};});
+ for(const o of p.openings){if(!['door','main','pocket'].includes(o.kind))continue;const w=p.walls.find(w=>w.id===o.wallId);if(!w?.owners.includes(roomId))continue;const start=w.start+o.offset;occupied.push(w.axis==='h'?{x:start,y:w.at-o.width,width:o.width,depth:2*o.width}:{x:w.at-o.width,y:start,width:2*o.width,depth:o.width});}
+ let slot;for(let y=r.y+.25;y+depth<=r.y+r.depth-.25&&!slot;y+=.5)for(let x=r.x+.25;x+width<=r.x+r.width-.25&&!slot;x+=.5){const b={x,y,width,depth};if(!occupied.some(o=>intersect(b,o)))slot=b;}
+ if(!slot)throw Error('No clear space for '+d.name+' in '+r.name+'. Move furniture or enlarge the room first.');
+ next.fixtures||=[];const f=makeFixture(next,catalogId,slot.x+width/2,slot.y+depth/2);f.position.x=slot.x+width/2;f.position.y=slot.y+depth/2;f.roomId=roomId;next.fixtures.push(f);return validateEdit(p,next);
+}
+function singlePrompt(p,text,selectedId){
+ let command=text.trim().replace(/[.!]$/,'').replace(/^please\s+/i,'').replace(/\b(?:the )?selected room\b/gi,()=>selectedId||'selected room');let m,next,summary;
+ const furniture={'tv':'tv-unit','table':'coffee-table','dining table':'dining-table','pot':'plant-small','pots':'plant-small','plant':'plant-small','king size bed':'king-bed','king bed':'king-bed','queen size bed':'queen-bed','queen bed':'queen-bed'};
+ if(m=command.match(/^(?:delete|remove) (?:a |the )?(door|window)(?: (\d+))?(?: (?:from|in) (.+))?$/i)){const r=findRoom(p,m[3]||selectedId||'selected room');next=deleteOpening(p,r.id,m[1].toLowerCase(),m[2]?Number(m[2]):undefined);summary='Remove '+m[1]+' from '+r.name+'. Shared-wall openings are also removed from the adjoining room.';}
+ else if(m=command.match(/^add (?:a |an )?(tv|table|dining table|pot|pots|plant|king size bed|king bed|queen size bed|queen bed)(?: (?:to|in) (.+))?$/i)){const r=findRoom(p,m[2]||selectedId||'selected room'),id=furniture[m[1].toLowerCase()];next=addFurniture(p,r.id,id);summary='Place '+byId[id].name+' in '+r.name+' in clear space. Review access in 2D and regenerate 3D.';}
+ else if(!/\boffset\b/i.test(command)&&(m=command.match(/^add (?:a )?(door|window)(?: (?:to|in) (.+))?$/i))){const r=findRoom(p,m[2]||selectedId||'selected room'),kind=m[1].toLowerCase(),width=kind==='door'?3:4;for(const side of ['top','bottom','left','right']){for(let offset=.5;offset+width<=(['top','bottom'].includes(side)?r.width:r.depth)-.5;offset+=.5){try{const candidate=editOpening(p,{roomId:r.id,kind,side,offset,width,sill:kind==='window'?3:0,height:kind==='window'?4:7});next=validateEdit(p,candidate);break;}catch{}}if(next)break;}if(!next)throw Error('No free wall segment for this '+kind+'. Use an explicit wall, offset and width.');summary='Add a '+width+' ft '+kind+' in '+r.name+'. Review its wall position and access before applying.';}
+ else if(m=command.match(/^add (?:a )?bedroom(?: (\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)(?: ft)?)?$/i)){let name='Bedroom',i=2;while(p.rooms.some(r=>r.name.toLowerCase()===name.toLowerCase()))name='Bedroom '+i++;next=addRoom(p,name,Number(m[1]||10),Number(m[2]||12));summary='Add '+name+' at '+(m[1]||10)+' × '+(m[2]||12)+' ft in available space.';}
+ else if(m=command.match(/^(increase|decrease) (?:the )?area(?: by)? ([\d.]+)\s*(?:sq\.?\s*ft|sqft)$/i)){return singlePrompt(p,m[1]+' '+selectedId+' by '+m[2]+' sqft',selectedId);}
+ else if(m=command.match(/^rotate (.+?)(?: by)? 90(?: degrees)?$/i)){const r=findRoom(p,m[1]);next=rotateRoom(p,r.id);summary='Rotate '+r.name+' 90° clockwise about its centre.';}
  else if(m=command.match(/^(increase|decrease) (.+?) by ([\d.]+)\s*(?:sq\.?\s*ft|sqft)$/i)){const r=findRoom(p,m[2]),area=r.width*r.depth+(m[1].toLowerCase()==='increase'?1:-1)*Number(m[3]);next=resizeRoomArea(p,r.id,area);summary='Resize '+r.name+' to approximately '+area+' sq ft, holding width fixed.';}
  else if(m=command.match(/^set (.+?) to ([\d.]+)\s*(?:sq\.?\s*ft|sqft)$/i)){const r=findRoom(p,m[1]);next=resizeRoomArea(p,r.id,Number(m[2]));summary='Set '+r.name+' area to approximately '+m[2]+' sq ft, holding width fixed.';}
  else if(m=command.match(/^add room (.+?) ([\d.]+)\s*[x×]\s*([\d.]+)(?: ft)?$/i)){next=addRoom(p,m[1],Number(m[2]),Number(m[3]));summary='Add '+m[1]+' in available space; review its proposed access.';}
  else if(m=command.match(/^add (door|window) to (.+?) (top|bottom|left|right) (?:wall )?offset ([\d.]+) width ([\d.]+)(?: ft)?$/i)){const r=findRoom(p,m[2]),kind=m[1].toLowerCase();next=editOpening(p,{roomId:r.id,kind,side:m[3].toLowerCase(),offset:Number(m[4]),width:Number(m[5]),sill:kind==='window'?3:0,height:kind==='window'?4:7});validateEdit(p,next);summary='Add '+kind+' to '+r.name+'; offset and width are in feet.';}
  else throw Error('Command not recognized. Use one of the examples and an exact room name. No changes were made.');
  next.reviewed=false;return {plan:next,summary};
+}
+
+export function promptEdit(p,text,selectedId){
+ const commands=text.split(/[;\n]+/).map(v=>v.trim()).filter(Boolean);if(!commands.length||commands.length>10)throw Error('Enter 1–10 commands, one per line.');
+ let next=p;const summaries=[];for(const command of commands){const result=singlePrompt(next,command,selectedId);next=result.plan;summaries.push(result.summary);}return {plan:next,summary:summaries.join(' ')};
 }

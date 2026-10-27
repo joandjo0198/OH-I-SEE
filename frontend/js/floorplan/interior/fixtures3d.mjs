@@ -9,7 +9,7 @@ export function fixtureGroup(plan){
  for(const f of plan.fixtures||[]){const d=byId[f.catalogId];if(!d)continue;const g=new T.Group();g.name=productLabel(f);g.userData.product=f.props?.product||null;g.userData.roomId=f.roomId;g.userData.fixtureId=f.id;g.visible=!plan.hiddenFixtureLayers?.includes(d.category);g.position.set(f.position.x*FT,f.position.z*FT,f.position.y*FT);g.rotation.y=-f.rotation*Math.PI/180;g.scale.setScalar(f.scale*FT);root.add(g);
  const mat=(color,extra={})=>new T.MeshStandardMaterial({color,roughness:.65,...extra});
  const add=(geo,color,x=0,y=0,z=0,extra={})=>{const m=new T.Mesh(geo,mat(color,extra));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
- const box=(w,h,l,c,x=0,y=h/2,z=0)=>add(['sofa','armchair','bed'].includes(d.id)?new RoundedBoxGeometry(w,h,l,3,Math.min(w,h,l)*.18):new T.BoxGeometry(w,h,l),c,x,y,z),cyl=(a,b,h,c,x=0,y=h/2,z=0)=>add(new T.CylinderGeometry(a,b,h,24),c,x,y,z);
+ const box=(w,h,l,c,x=0,y=h/2,z=0)=>add(['sofa','armchair','bed','king-bed','queen-bed'].includes(d.id)?new RoundedBoxGeometry(w,h,l,3,Math.min(w,h,l)*.18):new T.BoxGeometry(w,h,l),c,x,y,z),cyl=(a,b,h,c,x=0,y=h/2,z=0)=>add(new T.CylinderGeometry(a,b,h,24),c,x,y,z);
  const [w,h,l]=d.size,id=d.id,wood=f.props?.color||'#967251',fabric=f.props?.product?.color||f.props?.color||'#a1b4a3',ivory=f.props?.product?.color||f.props?.color||'#eee7db';
  if(f.mount==='line'){
   const points=f.props?.points||[{x:f.position.x,y:f.position.y},{x:f.position.x+1,y:f.position.y}];g.rotation.y=0;g.scale.setScalar(FT);for(let i=1;i<points.length;i++){const a=new T.Vector3(points[i-1].x-f.position.x,0,points[i-1].y-f.position.y),b=new T.Vector3(points[i].x-f.position.x,0,points[i].y-f.position.y);if(a.distanceTo(b)<.01)continue;const tube=add(new T.CylinderGeometry(.045,.045,a.distanceTo(b),8),id==='drain-pipe'?'#7d6854':'#459bc6');tube.position.copy(a.clone().add(b).multiplyScalar(.5));tube.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),b.sub(a).normalize());}
@@ -20,7 +20,7 @@ export function fixtureGroup(plan){
   cyl(w*.32,w*.25,h*.25,'#cbbba3');for(let i=0;i<16;i++){const angle=i*2.4,height=h*.3+(i%7)/7*h*.65;const leaf=add(new T.SphereGeometry(1,8,6),i%2?'#38644b':'#618c52',Math.cos(angle)*w*.25,height,Math.sin(angle)*w*.25,{roughness:.8});leaf.scale.set(w*.15,h*.22,w*.07);leaf.rotation.set(.4,angle,.5);}cyl(.035,.05,h*.75,'#6b6045',0,h*.45);
  }else if(id.includes('fan')){
   cyl(.08,.08,.5,'#737b75',0,-.2);const rotor=new T.Group();rotor.userData.fan=true;g.add(rotor);for(let i=0;i<3;i++){const blade=box(id==='ceiling-fan'?1.8:.7,.06,.26,wood,.8,-.4);g.remove(blade);const pivot=new T.Group();pivot.rotation.y=i*Math.PI*2/3;pivot.add(blade);rotor.add(pivot);}cyl(.23,.23,.15,ivory,0,-.4);if(id!=='ceiling-fan')rotor.rotation.x=Math.PI/2;
- }else if(id==='bed'){
+ }else if(['bed','king-bed','queen-bed'].includes(id)){
   box(w,.65,l,wood);box(w,.7,l,ivory,0,1);box(w,.12,l*.55,fabric,0,1.41,l*.15);box(w,.95,.2,wood,0,1.2,-l/2);for(const x of [-w/4,w/4])box(w*.4,.25,1,'#fff9ef',x,1.5,-l*.34);
  }else if(id==='sofa'||id==='armchair'){
   box(w,1,l,fabric,0,.8);box(w,1.6,.35,fabric,0,1.8,-l/2+.2);for(const x of [-w/2+.2,w/2-.2])box(.4,1,l,fabric,x,1.6);for(const x of [-w*.25,w*.25]){box(w*.4,.2,l*.75,ivory,x,1.4,.1);const cushion=box(w*.16,.7,.22,'#6e7949',x,1.85,-l*.22);cushion.rotation.z=x<0?-.12:.12;}

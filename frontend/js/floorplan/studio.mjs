@@ -84,7 +84,7 @@ $('final-png').onclick=()=>{if(!viewer)return;const src=viewer.png(),a=document.
 window.addEventListener('pagehide',()=>{interior.hide();dispose();});render();
 
 mountReferenceShell({getPlan:()=>plan,getViewer:()=>viewer,notify:notice});
-designEdits=mountDesignEdits({getPlan:()=>plan,getSelected:()=>selected,apply:accept,draw,notify:notice});
+designEdits=mountDesignEdits({getPlan:()=>plan,getSelected:()=>selected,apply:accept,draw,notify:notice,onSelect:id=>{selected=id;draw();inspector();}});
 openingEditor=mountOpeningEditor({getPlan:()=>plan,apply:accept,notify:notice});
 
 // Project-linked studio: keep each floor's editable draft separate from the reference demo.

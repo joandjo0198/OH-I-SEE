@@ -23,3 +23,13 @@ it('rejects placing a second opening on an occupied opening',()=>{const p=fixtur
 });
 
 it('allows correcting the reference draft without worsening existing opening conflicts',()=>{const p=referencePlan();expect(()=>promptEdit(p,'Decrease Kitchen by 10 sqft')).not.toThrow();});
+
+describe('selected room prompt operations',()=>{
+it('adds all requested furniture with distinct bed sizes',()=>{for(const name of ['TV','table','pot','king size bed','queen size bed']){const p=fixture(),n=promptEdit(p,'Add a '+name,'living').plan;expect(n.fixtures).toHaveLength(1);expect(n.fixtures[0].roomId).toBe('living');expect(p.fixtures).toHaveLength(0);}});
+it('supports selected room area and room addition',()=>{expect(promptEdit(fixture(),'Increase area by 24 sqft','living').plan.rooms[0].depth).toBe(12);expect(promptEdit(fixture(),'Add a bedroom','living').plan.rooms).toHaveLength(2);});
+it('adds and deletes a window from selected room',()=>{const p=fixture();p.openings=[];const n=promptEdit(p,'Add a window to selected room','living').plan;expect(n.openings).toHaveLength(1);expect(promptEdit(n,'Delete a window','living').plan.openings).toHaveLength(0);});
+it('requires a number when deletion is ambiguous',()=>{const p=fixture();p.openings=[];const a=promptEdit(p,'Add a door','living').plan,b=promptEdit(a,'Add a door','living').plan;expect(()=>promptEdit(b,'Delete a door','living')).toThrow(/Specify a number/);const n=promptEdit(b,'Delete door 2 from selected room','living').plan;expect(n.openings).toHaveLength(1);expect(n.openings[0].id).toBe(b.openings[0].id);});
+it('multiple commands are atomic when a later command fails',()=>{const p=fixture(),saved=JSON.stringify(p);expect(()=>promptEdit(p,'Add a TV; destroy house','living')).toThrow();expect(JSON.stringify(p)).toBe(saved);});
+it('rejects furniture when room is too small',()=>{const p=fixture();p.rooms[0].width=3;p.rooms[0].depth=3;rebuildWalls(p);expect(()=>promptEdit(p,'Add a king size bed','living')).toThrow(/No clear space/);});
+it('places successive furniture without overlapping',()=>{const n=promptEdit(fixture(),'Add a queen size bed; Add a table; Add a pot','living').plan;expect(n.fixtures).toHaveLength(3);expect(new Set(n.fixtures.map(f=>f.position.x+','+f.position.y)).size).toBe(3);});
+});
