@@ -1,7 +1,7 @@
 import {makeFixture} from '../../frontend/js/floorplan/interior/fixture-model.mjs';
 import {describe,it,expect} from 'vitest';
 import {rotateRoom,resizeRoomArea,addRoom,moveOpening,promptEdit} from '../../frontend/js/floorplan/design-edits.mjs';
-import {rebuildWalls,validatePlan} from '../../frontend/js/floorplan/model.mjs';
+import {referencePlan,rebuildWalls,validatePlan} from '../../frontend/js/floorplan/model.mjs';
 function fixture(){const p={schemaVersion:1,title:'Test',units:'ft',source:'form',plot:{width:50,depth:50,facing:'East',roadSide:'front',setbacks:{left:2,right:2,front:2,rear:2}},settings:{externalWall:.75,internalWall:.375,wallHeight:10,doorHeight:7,windowSill:3,windowHeight:4},rooms:[{id:'living',name:'Living room',type:'living',x:10,y:10,width:12,depth:10}],walls:[],openings:[],fixtures:[],warnings:[]};rebuildWalls(p);return p;}
 describe('transactional layout edits',()=>{
 it('rotates around centre and preserves opening count, area and original',()=>{const p=fixture(),saved=JSON.stringify(p),r=rotateRoom(p,'living');expect(r.rooms[0]).toMatchObject({x:11,y:9,width:10,depth:12});expect(r.openings.length).toBe(p.openings.length);expect(validatePlan(r).errors).toEqual([]);expect(JSON.stringify(p)).toBe(saved);});
@@ -21,3 +21,5 @@ it('rotates fixture positions and restores door geometry after four turns',()=>{
 it('leaves the original unchanged when area crosses boundaries',()=>{const p=fixture(),saved=JSON.stringify(p);expect(()=>resizeRoomArea(p,'living',1200)).toThrow();expect(JSON.stringify(p)).toBe(saved);});
 it('rejects placing a second opening on an occupied opening',()=>{const p=fixture(),o=p.openings[0],w=p.walls.find(w=>w.id===o.wallId),r=p.rooms[0],side=w.axis==='h'?(w.at===r.y?'top':'bottom'):(w.at===r.x?'left':'right'),offset=w.start+o.offset-(w.axis==='h'?r.x:r.y);expect(()=>promptEdit(p,`Add door to Living room ${side} offset ${offset} width ${o.width}`)).toThrow(/overlaps/);});
 });
+
+it('allows correcting the reference draft without worsening existing opening conflicts',()=>{const p=referencePlan();expect(()=>promptEdit(p,'Decrease Kitchen by 10 sqft')).not.toThrow();});

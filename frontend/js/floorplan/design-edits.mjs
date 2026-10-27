@@ -8,7 +8,9 @@ export function validateEdit(before,next){
  const errors=validatePlan(next).errors.filter(e=>!existing.has(e));
  for(let i=0;i<next.openings.length;i++)for(let j=i+1;j<next.openings.length;j++){
   const a=next.openings[i],b=next.openings[j];
-  if(a.wallId===b.wallId&&Math.max(a.offset,b.offset)<Math.min(a.offset+a.width,b.offset+b.width)-.01)errors.push('Doors or windows overlap.');
+  const overlap=(a,b)=>a&&b&&a.wallId===b.wallId?Math.max(0,Math.min(a.offset+a.width,b.offset+b.width)-Math.max(a.offset,b.offset)):0;
+  const prior=overlap(before.openings.find(o=>o.id===a.id),before.openings.find(o=>o.id===b.id));
+  if(overlap(a,b)>prior+.01)errors.push('Doors or windows overlap.');
  }
  errors.push(...validateFixtures(next));
  if(errors.length)throw Error('Change not applied: '+errors.join(' '));
