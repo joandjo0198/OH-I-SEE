@@ -33,3 +33,11 @@ it('multiple commands are atomic when a later command fails',()=>{const p=fixtur
 it('rejects furniture when room is too small',()=>{const p=fixture();p.rooms[0].width=3;p.rooms[0].depth=3;rebuildWalls(p);expect(()=>promptEdit(p,'Add a king size bed','living')).toThrow(/No clear space/);});
 it('places successive furniture without overlapping',()=>{const n=promptEdit(fixture(),'Add a queen size bed; Add a table; Add a pot','living').plan;expect(n.fixtures).toHaveLength(3);expect(new Set(n.fixtures.map(f=>f.position.x+','+f.position.y)).size).toBe(3);});
 });
+
+describe('inside and outside staircase prompts',()=>{
+it('carves an inside stair from selected room without overlapping it',()=>{const p=fixture();p.openings=[];const n=promptEdit(p,'Add inside staircase 3 x 8 ft','living').plan;expect(n.rooms[0].width).toBe(9);expect(n.rooms[1]).toMatchObject({type:'stairs',placement:'inside',x:19,y:10,width:3,depth:8});expect(validatePlan(n).errors).toEqual([]);expect(p.rooms[0].width).toBe(12);});
+it('places outside stairs beside building without changing rooms or openings',()=>{const p=fixture(),n=promptEdit(p,'Add outside staircase 3 x 8 ft on right','living').plan;expect(n.rooms[1]).toMatchObject({x:22,y:10,width:3,depth:8,placement:'outside'});expect(n.rooms[0]).toEqual(p.rooms[0]);expect(n.openings).toEqual(p.openings);expect(validatePlan(n).errors).toEqual([]);});
+it('supports each exterior side',()=>{for(const side of ['left','right','top','bottom'])expect(promptEdit(fixture(),'Add outside staircase 3 x 8 ft on '+side,'living').plan.rooms).toHaveLength(2);});
+it('rejects impossible interior and exterior stairs without changing draft',()=>{const p=fixture(),saved=JSON.stringify(p);expect(()=>promptEdit(p,'Add inside staircase 30 x 30 ft','living')).toThrow(/does not fit/);expect(()=>promptEdit(p,'Add outside staircase 60 x 12 ft on left','living')).toThrow(/No space/);expect(JSON.stringify(p)).toBe(saved);});
+it('rejects carving stairs through placed furniture',()=>{const p=fixture();p.openings=[];p.fixtures=[makeFixture(p,'plant-small',21,15)];expect(()=>promptEdit(p,'Add inside staircase 3 x 8 ft','living')).toThrow(/Fixture must remain/);});
+});

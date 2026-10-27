@@ -96,10 +96,31 @@ export function addFurniture(p,roomId,catalogId){
  if(!slot)throw Error('No clear space for '+d.name+' in '+r.name+'. Move furniture or enlarge the room first.');
  next.fixtures||=[];const f=makeFixture(next,catalogId,slot.x+width/2,slot.y+depth/2);f.position.x=slot.x+width/2;f.position.y=slot.y+depth/2;f.roomId=roomId;next.fixtures.push(f);return validateEdit(p,next);
 }
+export function addStaircase(p,placement,roomId,width=3,depth=12,side='right'){
+ if(![width,depth].every(n=>Number.isFinite(n)&&n>=3&&n<=100))throw Error('Use staircase dimensions between 3 and 100 ft.');
+ const next=clone(p);let slot;
+ if(placement==='inside'){
+  const room=next.rooms.find(r=>r.id===roomId);if(!room||['stairs','porch'].includes(room.type))throw Error('Select an enclosed room for the inside staircase.');
+  if(room.width-width<3||room.depth<depth)throw Error('The inside staircase does not fit in '+room.name+'. Choose a larger room or smaller dimensions.');
+  const old={...room};slot={x:room.x+room.width-width,y:room.y,width,depth};room.width-=width;
+  rebuildPreserving(p,next,roomId,point=>({x:Math.abs(point.x-old.x-old.width)<.01?room.x+room.width:point.x,y:point.y}));
+ }else{
+  const enclosed=p.rooms.filter(r=>!['stairs','porch'].includes(r.type));if(!enclosed.length)throw Error('Add a room before placing an outside staircase.');
+  const box={x:Math.min(...enclosed.map(r=>r.x)),y:Math.min(...enclosed.map(r=>r.y))};box.right=Math.max(...enclosed.map(r=>r.x+r.width));box.bottom=Math.max(...enclosed.map(r=>r.y+r.depth));
+  const fits=b=>b.x>=0&&b.y>=0&&b.x+b.width<=p.plot.width&&b.y+b.depth<=p.plot.depth&&!p.rooms.some(r=>intersect(b,r));
+  if(['left','right'].includes(side)){const x=side==='left'?box.x-width:box.right;for(let y=box.y;y+depth<=box.bottom+.001&&!slot;y+=.25){const b={x,y,width,depth};if(fits(b))slot=b;}}
+  else{const y=side==='top'?box.y-depth:box.bottom;for(let x=box.x;x+width<=box.right+.001&&!slot;x+=.25){const b={x,y,width,depth};if(fits(b))slot=b;}}
+  if(!slot)throw Error('No space for an outside staircase on the '+side+'. Try another side or smaller dimensions.');
+ }
+ const base=placement==='inside'?'Inside staircase':'Outside staircase';let name=base,i=2;while(next.rooms.some(r=>r.name===name))name=base+' '+i++;
+ next.rooms.push({id:'stairs-'+crypto.randomUUID(),name,type:'stairs',placement,...slot});
+ return validateEdit(p,next);
+}
 function singlePrompt(p,text,selectedId){
  let command=text.trim().replace(/[.!]$/,'').replace(/^please\s+/i,'').replace(/\b(?:the )?selected room\b/gi,()=>selectedId||'selected room');let m,next,summary;
  const furniture={'tv':'tv-unit','table':'coffee-table','dining table':'dining-table','pot':'plant-small','pots':'plant-small','plant':'plant-small','king size bed':'king-bed','king bed':'king-bed','queen size bed':'queen-bed','queen bed':'queen-bed'};
- if(m=command.match(/^(?:delete|remove) (?:a |the )?(door|window)(?: (\d+))?(?: (?:from|in) (.+))?$/i)){const r=findRoom(p,m[3]||selectedId||'selected room');next=deleteOpening(p,r.id,m[1].toLowerCase(),m[2]?Number(m[2]):undefined);summary='Remove '+m[1]+' from '+r.name+'. Shared-wall openings are also removed from the adjoining room.';}
+ if(m=command.match(/^add (?:an? )?(inside|outside|indoor|outdoor) staircase(?: ([\d.]+)\s*[x×]\s*([\d.]+)(?: ft)?)?(?: on (?:the )?(left|right|top|bottom))?$/i)){const placement=['inside','indoor'].includes(m[1].toLowerCase())?'inside':'outside',width=Number(m[2]||3),depth=Number(m[3]||12),side=m[4]?.toLowerCase()||'right';next=addStaircase(p,placement,selectedId,width,depth,side);summary='Add '+placement+' staircase, '+width+' × '+depth+' ft'+(placement==='outside'?' on the '+side:' within the selected room, reducing its width')+'.';}
+ else if(m=command.match(/^(?:delete|remove) (?:a |the )?(door|window)(?: (\d+))?(?: (?:from|in) (.+))?$/i)){const r=findRoom(p,m[3]||selectedId||'selected room');next=deleteOpening(p,r.id,m[1].toLowerCase(),m[2]?Number(m[2]):undefined);summary='Remove '+m[1]+' from '+r.name+'. Shared-wall openings are also removed from the adjoining room.';}
  else if(m=command.match(/^add (?:a |an )?(tv|table|dining table|pot|pots|plant|king size bed|king bed|queen size bed|queen bed)(?: (?:to|in) (.+))?$/i)){const r=findRoom(p,m[2]||selectedId||'selected room'),id=furniture[m[1].toLowerCase()];next=addFurniture(p,r.id,id);summary='Place '+byId[id].name+' in '+r.name+' in clear space. Review access in 2D and regenerate 3D.';}
  else if(!/\boffset\b/i.test(command)&&(m=command.match(/^add (?:a )?(door|window)(?: (?:to|in) (.+))?$/i))){const r=findRoom(p,m[2]||selectedId||'selected room'),kind=m[1].toLowerCase(),width=kind==='door'?3:4;for(const side of ['top','bottom','left','right']){for(let offset=.5;offset+width<=(['top','bottom'].includes(side)?r.width:r.depth)-.5;offset+=.5){try{const candidate=editOpening(p,{roomId:r.id,kind,side,offset,width,sill:kind==='window'?3:0,height:kind==='window'?4:7});next=validateEdit(p,candidate);break;}catch{}}if(next)break;}if(!next)throw Error('No free wall segment for this '+kind+'. Use an explicit wall, offset and width.');summary='Add a '+width+' ft '+kind+' in '+r.name+'. Review its wall position and access before applying.';}
  else if(m=command.match(/^add (?:a )?bedroom(?: (\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)(?: ft)?)?$/i)){let name='Bedroom',i=2;while(p.rooms.some(r=>r.name.toLowerCase()===name.toLowerCase()))name='Bedroom '+i++;next=addRoom(p,name,Number(m[1]||10),Number(m[2]||12));summary='Add '+name+' at '+(m[1]||10)+' × '+(m[2]||12)+' ft in available space.';}
