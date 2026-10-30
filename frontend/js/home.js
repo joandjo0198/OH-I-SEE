@@ -241,7 +241,12 @@ async function initProductRecommendations() {
       return;
     }
 
-    grid.innerHTML = products.map(b => `<a class="product-card-dark" href="products.html?brand=${encodeURIComponent(b.name)}" style="text-decoration:none;display:block;border:1px solid #454025;border-radius:12px;padding:24px;min-height:180px;"><span style="display:inline-grid;place-items:center;width:56px;height:56px;background:#ffd400;color:#111;font-size:24px;font-weight:800;border-radius:12px;">${escHtml(b.name.slice(0,2).toUpperCase())}</span><h3 style="color:#fff;margin:18px 0 8px">${escHtml(b.name)}</h3><p style="color:#bbb">${Number(b.count)} products</p><span style="color:#ffd400">Explore brand →</span></a>`).join('');
+    const brandLogos = {"unbrako":"/images/brands/unbrako.png","supreme":"/images/brands/supreme.png","kirloskar":"/images/brands/kirloskar.jpg","esab":"/images/brands/esab.png","ashirvad": "/images/brands/ashirvad.webp", "astral": "/images/brands/astral.png", "dorset": "/images/brands/dorset.webp", "finolex": "/images/brands/finolex.svg", "jaquar": "/images/brands/jaquar.svg", "leader": "/images/brands/leader.png", "makita": "/images/brands/makita.jpg", "tata": "/images/brands/tata.svg", "zoloto": "/images/brands/zoloto.jpg", "bosch": "/images/brands/bosch.webp", "yale": "/images/brands/yale.svg", "parryware": "/images/brands/parryware.png", "3m": "/images/brands/3m.svg", "abb": "/images/brands/abb.svg", "siemens": "/images/brands/siemens.svg", "schneiderelectric": "/images/brands/schneiderelectric.svg", "hindware": "/images/brands/hindware.svg"};
+    grid.innerHTML = products.map(b => {
+      const key=b.name.toLowerCase().replace(/[^a-z0-9]/g,'');
+      const logo=brandLogos[key];
+      return `<a class="brand-catalog-card" href="products.html?brand=${encodeURIComponent(b.name)}"><div class="brand-logo-stage ${key==='tata'?'brand-logo-stage-dark':''}">${logo?`<img src="${logo}" alt="${escHtml(b.name)} logo" width="220" height="100" loading="lazy" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span hidden>${escHtml(b.name)}</span>`:`<span>${escHtml(b.name)}</span>`}</div><div class="brand-catalog-info"><h3>${escHtml(b.name)}</h3><p>${Number(b.count)} products</p><span class="brand-catalog-link">Explore products <span aria-hidden="true">→</span></span></div></a>`;
+    }).join('');
 
   } catch (err) {
     console.error('Products load error:', err);
