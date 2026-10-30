@@ -72,7 +72,13 @@ $('detect').onclick=async()=>{const file=$('plan-file').files[0];if(!file){notic
  // Retain invalid detected geometry for correction, but never convert it until validated.
  plan=next;plan.reviewed=false;selected=plan.rooms[0]?.id;dispose();show2D();render(true);$('show-overlay').checked=true;draw();$('detect-status').textContent=`Detected ${plan.rooms.length} spaces and ${result.ocr.length} text regions. ${result.scaleNote}`;notice('Detection complete. Correct room labels, dimensions and openings; confirm the scale in plan JSON.');
  }catch(e){$('detect-status').textContent=e.message;notice(e.message,true);}finally{$('detect').disabled=false;}};
-const interior=mountInterior({getPlan:()=>plan,getViewer:()=>viewer,onChange:()=>{draw();viewer?.refreshFixtures();persist();$('json-editor').value=JSON.stringify(plan,null,2);},notify:notice,download});
+function estimatePlans(){
+ const plans=[plan];if(!projectId)return plans;
+ const prefix='ohisee_studio_'+projectId+'_';
+ try{for(let i=0;i<localStorage.length;i++){const other=localStorage.key(i);if(other!==key&&other.startsWith(prefix)&&/^\d+$/.test(other.slice(prefix.length))){const saved=JSON.parse(localStorage.getItem(other));if(saved?.schemaVersion===1)plans.push(saved);}}}catch{}
+ return plans;
+}
+const interior=mountInterior({getPlan:()=>plan,getPlans:estimatePlans,getViewer:()=>viewer,onChange:()=>{draw();viewer?.refreshFixtures();persist();$('json-editor').value=JSON.stringify(plan,null,2);},notify:notice,download});
 
 async function finalHome(){await convert();if(!viewer)return;viewer.setMode('final');$('final-tools').hidden=false;$('view-final').setAttribute('aria-pressed','true');$('view-3d').setAttribute('aria-pressed','false');const e=roofEstimate(plan);$('final-summary').textContent=`${(plan.fixtures||[]).length} placed items · ${e.surface.toFixed(0)} sq.ft roof`+(e.quoted?` · ₹${e.total.toLocaleString('en-IN',{maximumFractionDigits:0})} materials`:' · roof rate not entered');notice('Final Home ready. Exterior, furnished cutaway and room interiors share your saved products.');}
 const roofPanel=mountRoofPanel($('roof-panel'),{getPlan:()=>plan,save:()=>{draw();persist();$('json-editor').value=JSON.stringify(plan,null,2);},preview:finalHome,notify:notice});
