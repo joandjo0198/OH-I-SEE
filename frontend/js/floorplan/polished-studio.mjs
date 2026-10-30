@@ -9,6 +9,9 @@ export function mountPolishedStudio(){
  for(const [icon,label,action]of destinations){const b=document.createElement('button');b.textContent=icon+'  '+label;b.onclick=action;side.append(b);}
  document.querySelector('.ref-plan-settings').prepend(side);
  const promptPanel=document.querySelector('.plan-prompt-panel'),examples=promptPanel.querySelector('[data-examples]');
+ document.querySelector('.studio-layout').after(promptPanel);
+ const selectedProduct=$('fixture-inspector').parentElement;selectedProduct.querySelector('summary').textContent='Selected product · size & position';$('room-products').before(selectedProduct);
+ const productsButton=tabs.querySelector('[data-panel=products]');productsButton.textContent='Brands & products';productsButton.click();
  examples.previousElementSibling.textContent='✦  Quick example prompts';
  const icons=['▱','▱','🛏','🚪','🪟','✕','✕','⤢','⤡','▣','🪑','🪴','🛏','🛏'];
  [...examples.children].forEach((b,i)=>{const icon=document.createElement('span');icon.className='example-icon';icon.setAttribute('aria-hidden','true');icon.textContent=icons[i];b.prepend(icon);});

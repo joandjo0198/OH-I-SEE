@@ -1,3 +1,4 @@
+import {fixtureSize} from './dimensions.mjs';
 import {snapExterior,productLabel,parseProductDrop} from './products.mjs';
 import {byId} from './catalog.js';
 import {makeFixture,snap,wallRoute,fixtureSVG} from './fixture-model.mjs';
@@ -17,7 +18,7 @@ export function PlacementController({getPlan,getViewer,getInterior,commit,select
  view(host)?.previewFixture?.(f.id,{...f.position,...drag.target});
  for(const el of planHost.querySelectorAll('[data-fixture]'))if(el.dataset.fixture===f.id)el.setAttribute('transform',`translate(${dx} ${dy})`);
  },true);
- const end=e=>{if(!drag)return;e.stopImmediatePropagation();const current=drag,p=drag.target;restore();if(!current.moved||!p)return;try{const next=current.before,f=next.find(f=>f.id===current.id),old={...f.position},oldRotation=f.rotation;Object.assign(f,f.props.installation==='exterior'?snapExterior(getPlan(),byId[f.catalogId],f.roomId,p.x,p.y):snap(getPlan(),byId[f.catalogId],p.x,p.y,!!f.props.product));if(['floor','ceiling'].includes(f.mount))f.rotation=oldRotation;if(f.props.points)f.props.points=f.props.points.map(q=>({x:q.x+f.position.x-old.x,y:q.y+f.position.y-old.y}));commit(next);}catch(error){notify(error.message,true);}};
+ const end=e=>{if(!drag)return;e.stopImmediatePropagation();const current=drag,p=drag.target;restore();if(!current.moved||!p)return;try{const next=current.before,f=next.find(f=>f.id===current.id),old={...f.position},oldRotation=f.rotation;Object.assign(f,f.props.installation==='exterior'?snapExterior(getPlan(),byId[f.catalogId],f.roomId,p.x,p.y):snap(getPlan(),{...byId[f.catalogId],size:fixtureSize(f)},p.x,p.y,!!f.props.product));if(['floor','ceiling'].includes(f.mount))f.rotation=oldRotation;if(f.props.points)f.props.points=f.props.points.map(q=>({x:q.x+f.position.x-old.x,y:q.y+f.position.y-old.y}));commit(next);}catch(error){notify(error.message,true);}};
  host.addEventListener('pointerup',end,true);host.addEventListener('pointercancel',restore,true);
  host.addEventListener('dragover',e=>{if(tool||e.dataTransfer?.types.some(t=>['application/ohisee-fixture','application/ohisee-product'].includes(t))){e.preventDefault();if(host===planHost)preview(point(e,host));}});host.addEventListener('dragleave',clearPreview);
  host.addEventListener('drop',e=>{e.preventDefault();e.stopPropagation();try{const product=e.dataTransfer.getData('application/ohisee-product'),incoming=e.dataTransfer.getData('application/ohisee-fixture');if(product){const data=parseProductDrop(product);tool=data.catalogId;options={product:data.product,installation:data.installation};points=[];}else if(incoming){if(!byId[incoming])return;tool=incoming;options={};points=[];}place(point(e,host));}catch(error){notify(error.message,true);}});

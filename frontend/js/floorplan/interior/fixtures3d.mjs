@@ -1,3 +1,4 @@
+import {fixtureSize} from './dimensions.mjs';
 import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import {productLabel} from './products.mjs';
 import * as T from 'three';
@@ -6,7 +7,7 @@ import {byId} from './catalog.js';
 const FT=.3048;
 export function fixtureGroup(plan){
  const root=new T.Group();root.name='Placed fixtures';
- for(const f of plan.fixtures||[]){const d=byId[f.catalogId];if(!d)continue;const g=new T.Group();g.name=productLabel(f);g.userData.product=f.props?.product||null;g.userData.roomId=f.roomId;g.userData.fixtureId=f.id;g.visible=!plan.hiddenFixtureLayers?.includes(d.category);g.position.set(f.position.x*FT,f.position.z*FT,f.position.y*FT);g.rotation.y=-f.rotation*Math.PI/180;g.scale.setScalar(f.scale*FT);root.add(g);
+ for(const f of plan.fixtures||[]){const d=byId[f.catalogId];if(!d)continue;const g=new T.Group();g.name=productLabel(f);g.userData.product=f.props?.product||null;g.userData.roomId=f.roomId;g.userData.fixtureId=f.id;g.visible=!plan.hiddenFixtureLayers?.includes(d.category);g.position.set(f.position.x*FT,f.position.z*FT,f.position.y*FT);g.rotation.y=-f.rotation*Math.PI/180;const size=fixtureSize(f);g.scale.set(size[0]/d.size[0]*FT,size[1]/d.size[1]*FT,size[2]/d.size[2]*FT);root.add(g);
  const mat=(color,extra={})=>new T.MeshStandardMaterial({color,roughness:.65,...extra});
  const add=(geo,color,x=0,y=0,z=0,extra={})=>{const m=new T.Mesh(geo,mat(color,extra));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;g.add(m);return m;};
  const box=(w,h,l,c,x=0,y=h/2,z=0)=>add(['sofa','armchair','bed','king-bed','queen-bed'].includes(d.id)?new RoundedBoxGeometry(w,h,l,3,Math.min(w,h,l)*.18):new T.BoxGeometry(w,h,l),c,x,y,z),cyl=(a,b,h,c,x=0,y=h/2,z=0)=>add(new T.CylinderGeometry(a,b,h,24),c,x,y,z);
