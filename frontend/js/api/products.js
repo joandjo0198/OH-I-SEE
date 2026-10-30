@@ -39,8 +39,8 @@ function mapDbProductToFrontend(p) {
 
 window.ProductsAPI = {
   getAll: async () => {
-    const res = await apiFetch('/products');
-    const products = res.products || [];
+    const products=[];let offset=0;
+    while(true){const res=await apiFetch('/products?limit=100&offset='+offset);const batch=res.products||[];products.push(...batch);offset+=batch.length;if(!batch.length||offset>=res.total||batch.length<100)break;}
     return products.map(mapDbProductToFrontend);
   },
   

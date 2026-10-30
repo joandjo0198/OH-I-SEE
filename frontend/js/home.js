@@ -226,10 +226,10 @@ async function initProductRecommendations() {
     </div>`).join('');
 
   try {
-    const resp = await fetch(`${homeApiBase()}/products?limit=8&sort=featured`);
+    const resp = await fetch(`${homeApiBase()}/products/brands`);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const result = await resp.json();
-    const products = result.data || result.products || result || [];
+    const products = Array.isArray(result.brands) ? result.brands : [];
 
     if (!products.length) {
       grid.innerHTML = `<div class="projects-state" style="grid-column:1/-1;">
@@ -241,7 +241,7 @@ async function initProductRecommendations() {
       return;
     }
 
-    grid.innerHTML = products.slice(0, 8).map(p => renderProductCardDark(p)).join('');
+    grid.innerHTML = products.map(b => `<a class="product-card-dark" href="products.html?brand=${encodeURIComponent(b.name)}" style="text-decoration:none;display:block;border:1px solid #454025;border-radius:12px;padding:24px;min-height:180px;"><span style="display:inline-grid;place-items:center;width:56px;height:56px;background:#ffd400;color:#111;font-size:24px;font-weight:800;border-radius:12px;">${escHtml(b.name.slice(0,2).toUpperCase())}</span><h3 style="color:#fff;margin:18px 0 8px">${escHtml(b.name)}</h3><p style="color:#bbb">${Number(b.count)} products</p><span style="color:#ffd400">Explore brand →</span></a>`).join('');
 
   } catch (err) {
     console.error('Products load error:', err);

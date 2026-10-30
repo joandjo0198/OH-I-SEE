@@ -417,6 +417,8 @@
         <form id="product-form" onsubmit="saveProduct(event)">
           <input type="hidden" id="prod-form-id">
           
+          <div class="form-group"><label for="prod-form-brand">1. Brand name *</label><input type="text" id="prod-form-brand" onkeydown="if(event.key==='Enter'){event.preventDefault();continueProductBrand();}" list="product-brand-options" maxlength="100" placeholder="e.g. Legrand" required><datalist id="product-brand-options"></datalist><p>Select an existing brand or enter a new brand name.</p><button type="button" class="btn btn-primary" onclick="continueProductBrand()">Continue to product details →</button></div>
+          <fieldset id="product-details-step" hidden disabled style="border:0;padding:0;margin:0"><legend>2. Product details</legend>
           <!-- Basic Information -->
           <h4 style="font-family:'Space Grotesk',monospace; text-transform:uppercase; font-size:12px; color:var(--secondary); background:var(--primary); padding:6px 12px; margin-bottom:12px; border-radius:4px; font-weight:700;">Basic Information</h4>
           
@@ -444,10 +446,7 @@
                 <option value="Industrial">Safety & Industrial</option>
               </select>
             </div>
-            <div class="form-group">
-              <label>Brand *</label>
-              <input type="text" id="prod-form-brand" placeholder="e.g. Schneider Electric" required>
-            </div>
+
           </div>
 
           <div class="form-row">
@@ -515,6 +514,7 @@
             <button type="button" class="btn btn-outline" style="border-color:#ccc; color:#333;" onclick="saveProductDraft()">Save as Draft</button>
             <button type="submit" class="btn btn-primary">Publish Product</button>
           </div>
+          </fieldset>
         </form>
       </div>
     </div>
@@ -909,6 +909,8 @@
       document.getElementById('image-preview-container').innerHTML = '';
       
       form.reset();
+      const details=document.getElementById('product-details-step');details.hidden=!id;details.disabled=!id;
+      const options=document.getElementById('product-brand-options');options.replaceChildren(...[...new Set(adminProducts.map(p=>(p.brand||'').trim()).filter(Boolean))].sort().map(name=>{const option=document.createElement('option');option.value=name;return option;}));
 
       if (id) {
         title.textContent = 'Edit Product Data';
@@ -945,6 +947,7 @@
       overlay.classList.add('active');
     }
 
+    window.continueProductBrand = function(){const brand=document.getElementById('prod-form-brand');brand.value=brand.value.trim().replace(/\s+/g,' ');if(!brand.reportValidity())return;const details=document.getElementById('product-details-step');details.hidden=false;details.disabled=false;document.getElementById('prod-form-name').focus();};
     window.closeProductModal = function() {
       const overlay = document.getElementById('product-modal-overlay');
       overlay.classList.remove('active');

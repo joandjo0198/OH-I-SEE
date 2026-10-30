@@ -9,7 +9,7 @@ const supabase = require('../config/supabase');
 async function getProducts(req, res) {
   try {
     let filters;try{filters=productQuery(req.query);}catch(error){return res.status(400).json({error:error.message});}
-    const {category,search,min_price,max_price,stock,limit,offset}=filters;
+    const {category,search,min_price,max_price,stock,brand,limit,offset}=filters;
 
     let query = supabase
       .from('products')
@@ -18,6 +18,7 @@ async function getProducts(req, res) {
       .order('id', { ascending: true })
       .range(Number(offset), Number(offset) + Number(limit) - 1);
 
+    if (brand) query = query.ilike('brand', brand.replace(/[\\%_]/g, '\\$&'));
     if (category) query = query.eq('category', category);
     if (stock) query = query.eq('stock_status', stock);
     if (min_price !== undefined) query = query.gte('price', Number(min_price));
@@ -89,6 +90,7 @@ async function createProduct(req, res) {
 async function updateProduct(req, res) {
   try {
     const updates = { ...req.body };
+    if ('brand' in updates) { if(typeof updates.brand !== 'string' || !updates.brand.trim() || updates.brand.trim().length>100)return res.status(400).json({error:'Brand is required (maximum 100 characters)'});updates.brand=updates.brand.trim().replace(/\s+/g,' '); }
     delete updates.id;
     delete updates.created_at;
 
@@ -136,4 +138,15 @@ async function getAllProductsAdmin(req, res) {
   }
 }
 
-module.exports = { getProducts, getProduct, createProduct, updateProduct, deleteProduct, getAllProductsAdmin };
+// Active catalog brands, including products beyond the first catalog page.
+async function getBrands(req,res){
+ try{
+  const groups=new Map();let offset=0;
+  while(true){const {data,error}=await supabase.from('products').select('brand').eq('is_active',true).order('id',{ascending:true}).range(offset,offset+999);if(error)throw error;
+   for(const row of data||[]){const name=String(row.brand||'').trim().replace(/\s+/g,' ');if(!name)continue;const key=name.toLowerCase();if(!groups.has(key))groups.set(key,{name,count:0});groups.get(key).count++;}
+   if(!data||data.length<1000)break;offset+=1000;
+  }
+  res.json({brands:[...groups.values()].sort((a,b)=>a.name.localeCompare(b.name))});
+ }catch(error){console.error('getBrands error:',error);res.status(500).json({error:'Failed to fetch brands'});}
+}
+module.exports = { getBrands, getProducts, getProduct, createProduct, updateProduct, deleteProduct, getAllProductsAdmin };

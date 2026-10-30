@@ -163,6 +163,8 @@
           document.getElementById('listing-title').textContent = 'All Industrial Supplies';
         }
       }
+      const brand=getUrlParam('brand');
+      if(brand){products=products.filter(p=>(p.brand||'').trim().replace(/\s+/g,' ').toLowerCase()===brand.trim().toLowerCase());document.getElementById('listing-title').textContent=brand+' Products';}
       return products;
     }
 
@@ -183,7 +185,7 @@
       }
 
       const grid = document.getElementById('product-listing-grid');
-      grid.innerHTML = products.map(renderProductCard).join('');
+      grid.innerHTML = products.length?products.map(renderProductCard).join(''):'<p style="grid-column:1/-1">No products match these filters. Try clearing the filters.</p>';
       document.getElementById('result-count').textContent = products.length;
       document.getElementById('display-count').textContent = Math.min(12, products.length);
       document.getElementById('total-count').textContent = products.length;
@@ -198,6 +200,7 @@
       // Clear URL parameter without page refresh
       const url = new URL(window.location);
       url.searchParams.delete('cat');
+      url.searchParams.delete('brand');
       window.history.pushState({}, '', url);
       
       applyFilters();
@@ -210,7 +213,9 @@
         allProducts = await ProductsAPI.getAll();
       } catch (err) {
         console.error('Failed to fetch products from backend, falling back to mock data', err);
-        allProducts = typeof PRODUCTS !== 'undefined' ? PRODUCTS : [];
+        allProducts = [];
+        document.getElementById('listing-title').textContent='Catalog unavailable';
+        document.getElementById('product-listing-grid').textContent='Could not load products. Please reload to try again.';return;
       }
 
       const catParam = getUrlParam('cat');
