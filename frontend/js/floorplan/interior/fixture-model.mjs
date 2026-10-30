@@ -1,16 +1,16 @@
 import {validateProduct,productLabel} from './products.mjs';
 import {byId} from './catalog.js';
 export const roomAt=(plan,x,y)=>plan.rooms.find(r=>x>=r.x&&x<=r.x+r.width&&y>=r.y&&y<=r.y+r.depth);
-export function snap(plan,item,x,y){
+export function snap(plan,item,x,y,precise=false){
  const r=roomAt(plan,x,y);if(!r)throw Error('Place this fixture inside a room.');
- x=Math.max(r.x,Math.min(r.x+r.width,Math.round(x*2)/2));y=Math.max(r.y,Math.min(r.y+r.depth,Math.round(y*2)/2));let rotation=0;
+ x=Math.max(r.x,Math.min(r.x+r.width,precise?x:Math.round(x*2)/2));y=Math.max(r.y,Math.min(r.y+r.depth,precise?y:Math.round(y*2)/2));let rotation=0;
  if(item.mountType==='floor'){const mx=Math.min(item.size[0]/2,r.width/2),my=Math.min(item.size[2]/2,r.depth/2);x=Math.max(r.x+mx,Math.min(r.x+r.width-mx,x));y=Math.max(r.y+my,Math.min(r.y+r.depth-my,y));}
  if(item.mountType==='wall'||item.mountType==='line'){
   const sides=[{d:x-r.x,x:r.x+.22,y,rotation:-90},{d:r.x+r.width-x,x:r.x+r.width-.22,y,rotation:90},{d:y-r.y,x,y:r.y+.22,rotation:0},{d:r.y+r.depth-y,x,y:r.y+r.depth-.22,rotation:180}].sort((a,b)=>a.d-b.d);({x,y,rotation}=sides[0]);
  }
  return {roomId:r.id,position:{x,y,z:item.mountType==='ceiling'?plan.settings.wallHeight-(item.id==='ceiling-fan'?.8:.2):item.elevation},rotation};
 }
-export function makeFixture(plan,catalogId,x,y){const item=byId[catalogId];if(!item)throw Error('Unknown fixture.');return {id:crypto.randomUUID(),catalogId,category:item.category,...snap(plan,item,x,y),scale:1,mount:item.mountType,props:{label:item.name,...item.light}};}
+export function makeFixture(plan,catalogId,x,y,precise=false){const item=byId[catalogId];if(!item)throw Error('Unknown fixture.');return {id:crypto.randomUUID(),catalogId,category:item.category,...snap(plan,item,x,y,precise),scale:1,mount:item.mountType,props:{label:item.name,...item.light}};}
 export function wallRoute(a,b,r){
  const left=r.x+.22,top=r.y+.22,w=r.width-.44,h=r.depth-.44,total=2*(w+h);
  const t=p=>Math.abs(p.y-top)<.01?p.x-left:Math.abs(p.x-left-w)<.01?w+p.y-top:Math.abs(p.y-top-h)<.01?w+h+left+w-p.x:2*w+h+top+h-p.y;
@@ -27,4 +27,4 @@ export function fixtureHints(plan){const hints=[];for(const f of plan.fixtures||
 export function history(){const past=[],future=[];return {push(value){past.push(structuredClone(value));if(past.length>50)past.shift();future.length=0;},undo(value){if(!past.length)return null;future.push(structuredClone(value));return past.pop();},redo(value){if(!future.length)return null;past.push(structuredClone(value));return future.pop();},clear(){past.length=0;future.length=0;}};}
 export function schedule(plan){const rows=new Map();for(const f of plan.fixtures||[]){const room=plan.rooms.find(r=>r.id===f.roomId)?.name||'Unknown',item=byId[f.catalogId];if(!item)continue;const key=JSON.stringify([f.roomId,f.catalogId,f.props.product||null,f.props.installation||'interior']);if(!rows.has(key))rows.set(key,{room,type:productLabel(f)+(f.props.installation==='exterior'?' (outdoor)':''),count:0});rows.get(key).count++;}return [...rows.values()];}
 const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-export function fixtureSVG(plan){return (plan.fixtures||[]).filter(f=>!plan.hiddenFixtureLayers?.includes(f.category)&&byId[f.catalogId]).map(f=>{const d=byId[f.catalogId],p=f.position,s=d.size;return `<g data-fixture="${safe(f.id)}" style="cursor:grab" stroke="#3d685a" stroke-width=".09"><title>${safe(productLabel(f))}</title>${f.props.points?.length?`<polyline points="${f.props.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${f.catalogId==='drain-pipe'?'#966b4c':'#247dba'}" stroke-width=".2"/>`:`<g transform="translate(${p.x} ${p.y}) rotate(${f.rotation}) scale(${f.scale})"><rect x="${-s[0]/2}" y="${-s[2]/2}" width="${s[0]}" height="${s[2]}" rx=".1" fill="#d8e5dc" fill-opacity=".85"/><text text-anchor="middle" dominant-baseline="central" font-size=".75" fill="#214b3a" stroke="none">${d.symbol}</text></g>`}</g>`;}).join('');}
+export function fixtureSVG(plan){return (plan.fixtures||[]).filter(f=>!plan.hiddenFixtureLayers?.includes(f.category)&&byId[f.catalogId]).map(f=>{const d=byId[f.catalogId],p=f.position,s=d.size;return `<g data-fixture="${safe(f.id)}" style="cursor:grab" stroke="#3d685a" stroke-width=".09"><title>${safe(productLabel(f))}</title>${f.props.points?.length?`<polyline points="${f.props.points.map(p=>p.x+','+p.y).join(' ')}" fill="none" stroke="${f.catalogId==='drain-pipe'?'#966b4c':'#247dba'}" stroke-width=".2"/>`:`<g transform="translate(${p.x} ${p.y}) rotate(${f.rotation}) scale(${f.scale})"><rect x="${-s[0]/2}" y="${-s[2]/2}" width="${s[0]}" height="${s[2]}" rx=".1" fill="#d8e5dc" fill-opacity=".85"/>${f.catalogId==='catalog-product'&&f.props.product?.imageUrl?`<image href="${safe(f.props.product.imageUrl)}" x="${-s[0]/2}" y="${-s[2]/2}" width="${s[0]}" height="${s[2]}" preserveAspectRatio="xMidYMid meet"/>`:''}<text text-anchor="middle" dominant-baseline="central" font-size=".75" fill="#214b3a" stroke="none">${f.catalogId==='catalog-product'&&f.props.product?.imageUrl?'':d.symbol}</text></g>`}</g>`;}).join('');}
