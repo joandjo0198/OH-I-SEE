@@ -5,7 +5,7 @@ import {byId} from './interior/catalog.js';
 export const esc = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function feet(value){const inches=Math.round(value*12);return `${Math.floor(inches/12)}′${inches%12?inches%12+'″':''}`;}
 export function planSVG(p,{selected=null,image=null,overlay=false,editable=false}={}) {
- const {width,depth,facing,roadSide}=p.plot, wallColor='#2022ad';
+ const {width,depth,facing,roadSide}=p.plot, wallColor=editable?'#3c342b':'#2022ad';
  // Editing must not resize or recenter the sheet when a product is dropped.
  // Keep the fixture legend on exported sheets only.
  const legend=editable?[]:[...new Set((p.fixtures||[]).map(f=>f.catalogId))].map(id=>byId[id]).filter(Boolean),extra=legend.length?Math.ceil(legend.length/2)*.9+1:0;
@@ -16,11 +16,13 @@ export function planSVG(p,{selected=null,image=null,overlay=false,editable=false
  const text=(x,y,value,size=.6,extra='')=>`<g transform="rotate(${-rotation} ${x} ${y})"><text x="${x}" y="${y}" font-size="${size}" text-anchor="middle" fill="#152739" ${extra}>${esc(value)}</text></g>`;
  const dimension=(x1,y1,x2,y2,label)=>line(x1,y1,x2,y2)+line(x1-.2,y1-.2,x1+.2,y1+.2)+line(x2-.2,y2-.2,x2+.2,y2+.2)+text((x1+x2)/2,(y1+y2)/2-.3,label,.65);
  let s=`<svg id="plan-svg" xmlns="http://www.w3.org/2000/svg" viewBox="${cx-vw/2} ${cy-vh/2} ${vw} ${vh}" role="img" aria-label="Editable ${esc(p.title)}" style="font-family:Arial,sans-serif;background:#fff;touch-action:none"><rect x="-4" y="-5" width="${width+8}" height="${depth+12+extra}" fill="white"/><g data-plan-geometry="true" transform="rotate(${rotation} ${cx} ${cy})">`;
+ if(editable)s+=`<defs><pattern id="studio-timber" width="3" height="6" patternUnits="userSpaceOnUse"><rect width="3" height="6" fill="#d6b588"/><path d="M0 0V6M1.5 0V6M0 3H1.5M1.5 1H3" stroke="#9e7748" stroke-opacity=".35" stroke-width=".035"/><path d="M.5 0Q.8 2 .4 6M2 0Q2.4 4 2 6" stroke="#fff2d4" stroke-opacity=".45" fill="none" stroke-width=".035"/></pattern><pattern id="studio-tile" width="2" height="2" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#eee6d6" stroke="#c3b8a4" stroke-width=".035"/><path d="M0 .4L2 1.3M.6 0L1.4 2" stroke="#d4cab9" stroke-width=".025"/></pattern></defs>`;
  s+=dimension(0,-1.3,width,-1.3,`${feet(width)} / ${(width*.3048).toFixed(2)} m`)+text(-2.2,depth/2,`${feet(depth)} / ${(depth*.3048).toFixed(2)} m`,.65,`transform="rotate(-90 -2.2 ${depth/2})"`);
  s+=`<rect x="0" y="0" width="${width}" height="${depth}" fill="#f7faf6" stroke="#adb7b2" stroke-width=".13"/>`;
  if(image&&overlay)s+=`<image href="${esc(image)}" x="0" y="0" width="${width}" height="${depth}" preserveAspectRatio="none" opacity=".55"/>`;
  const b=p.plot.setbacks;s+=`<rect x="${b.left}" y="${b.rear}" width="${width-b.left-b.right}" height="${depth-b.front-b.rear}" fill="none" stroke="#9eae9c" stroke-width=".08" stroke-dasharray=".3 .2"/>`;
- for(const r of p.rooms){s+=`<g data-room="${esc(r.id)}" style="cursor:move"><rect x="${r.x}" y="${r.y}" width="${r.width}" height="${r.depth}" fill="${r.id===selected?'#ffec9c':overlay?'#ffffff33':['bathroom','kitchen'].includes(r.type)?'#ecf4f4':'#ffffff'}" stroke="${r.id===selected?'#d9a400':'#ccd3ce'}" stroke-width=".09"/>`;
+ for(const r of p.rooms){s+=`<g data-room="${esc(r.id)}" style="cursor:move"><rect x="${r.x}" y="${r.y}" width="${r.width}" height="${r.depth}" fill="${overlay?'#ffffff33':editable?((/^#[0-9a-f]{6}$/i.test(p.finishes?.['floor:'+r.id]?.color)?p.finishes['floor:'+r.id].color:null)||(['bedroom','dressing'].includes(r.type)?'url(#studio-timber)':'url(#studio-tile)')):r.id===selected?'#ffec9c':['bathroom','kitchen'].includes(r.type)?'#ecf4f4':'#ffffff'}" stroke="${r.id===selected?'#d9a400':'#ccd3ce'}" stroke-width=".09"/>`;
+ if(editable&&r.id===selected)s+=`<rect x="${r.x+.12}" y="${r.y+.12}" width="${Math.max(.1,r.width-.24)}" height="${Math.max(.1,r.depth-.24)}" fill="#ffcf6430" stroke="#d59c28" stroke-width=".13" pointer-events="none"/>`;
  const rx=r.x+r.width/2,ry=r.y+r.depth/2,available=(turned?r.depth:r.width)-.6;
  const fs=Math.max(.3,Math.min(.85,available/13));
  const words=r.name.toUpperCase().split(/\s+/),lines=[];let current='';

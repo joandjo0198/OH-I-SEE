@@ -1,3 +1,5 @@
+import {mountPolishedStudio} from './polished-studio.mjs';
+import '../../css/studio-polished.css';
 import {mountDesignEdits} from './design-edit-panel.mjs';
 import {mountOpeningEditor} from './opening-editor.mjs';
 import {mountReferenceShell} from './reference-shell.mjs';
@@ -133,3 +135,5 @@ if(projectId){
  regenerate.onclick=()=>loadProjectStudio(true);
  loadProjectStudio();
 }
+
+mountPolishedStudio();
