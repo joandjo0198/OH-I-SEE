@@ -6,7 +6,9 @@ export const esc = value => String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;
 export function feet(value){const inches=Math.round(value*12);return `${Math.floor(inches/12)}′${inches%12?inches%12+'″':''}`;}
 export function planSVG(p,{selected=null,image=null,overlay=false,editable=false}={}) {
  const {width,depth,facing,roadSide}=p.plot, wallColor='#2022ad';
- const legend=[...new Set((p.fixtures||[]).map(f=>f.catalogId))].map(id=>byId[id]).filter(Boolean),extra=legend.length?Math.ceil(legend.length/2)*.9+1:0;
+ // Editing must not resize or recenter the sheet when a product is dropped.
+ // Keep the fixture legend on exported sheets only.
+ const legend=editable?[]:[...new Set((p.fixtures||[]).map(f=>f.catalogId))].map(id=>byId[id]).filter(Boolean),extra=legend.length?Math.ceil(legend.length/2)*.9+1:0;
  const rotation=({North:180,South:0,East:-90,West:90}[facing]??0);
  const pageWidth=width+8,pageHeight=depth+12+extra,cx=width/2,cy=(depth+2+extra)/2;
  const turned=Math.abs(rotation)===90,vw=turned?pageHeight:pageWidth,vh=turned?pageWidth:pageHeight;

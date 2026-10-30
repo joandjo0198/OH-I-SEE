@@ -32,3 +32,21 @@ test('hardware images have a default marker and preserve exact room drop coordin
  assert.equal(productEstimate([p]).total,730);
  assert.equal(validateProduct({...metadata,imageUrl:'javascript:alert(1)'}),false);
 });
+
+test('relative catalog image paths survive placement and unsafe paths are rejected',()=>{
+ const product=catalogProduct({id:'yale',product_name:'Cabinet handle',image_url:'/images/cat-hardware.png',price:730});
+ assert.equal(product.imageUrl,'/images/cat-hardware.png');assert.equal(validateProduct(product),true);
+ for(const imageUrl of ['//untrusted.test/a','/\\\\evil/a','javascript:alert(1)'])assert.equal(validateProduct({...product,imageUrl}),false);
+ const plan=referencePlan(),f=makeFixture(plan,'catalog-product',7.2,26.2,true);f.props.product=product;plan.fixtures=[f];
+ assert.match(fixtureSVG(plan),/href="\/images\/cat-hardware.png"/);
+});
+test('dropping products never changes editable sheet frame or facing transform',async()=>{
+ const {planSVG}=await import('../../frontend/js/floorplan/plan-svg.mjs');
+ for(const facing of ['North','South','East','West']){const p=referencePlan();p.plot.facing=facing;
+ const before=planSVG(p,{editable:true});const f=makeFixture(p,'catalog-product',7.2,26.2,true);f.props.product=product();p.fixtures=[f];
+ const after=planSVG(p,{editable:true});
+ assert.equal(after.match(/viewBox="([^"]+)"/)[1],before.match(/viewBox="([^"]+)"/)[1]);
+ assert.equal(after.match(/data-plan-geometry="true" transform="([^"]+)"/)[1],before.match(/data-plan-geometry="true" transform="([^"]+)"/)[1]);
+ assert.doesNotMatch(after,/FIXTURE SYMBOL LEGEND/);assert.match(planSVG(p),/FIXTURE SYMBOL LEGEND/);
+ }
+});

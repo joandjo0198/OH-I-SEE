@@ -1,9 +1,10 @@
 import {byId} from './catalog.js';
 
+export const safeProductImage=value=>typeof value==='string'&&value.length<=2000&&(/^https?:\/\//i.test(value)||/^\/(?![\/\\])[^\\]*$/.test(value));
 const bounded=(value,max)=>typeof value==='string'&&value.length<=max;
 export function validateProduct(product){
  if(!product||typeof product!=='object'||Array.isArray(product))return false;
- return (product.imageUrl===undefined||(typeof product.imageUrl==='string'&&product.imageUrl.length<=2000&&/^https?:\/\//i.test(product.imageUrl)))&&(product.unitPrice===undefined||(Number.isFinite(product.unitPrice)&&product.unitPrice>=0&&product.unitPrice<=1e9))&&(product.currency===undefined||product.currency==='INR')&&bounded(product.brand,80)&&bounded(product.name,160)&&product.name.trim().length>0&&bounded(product.sku,80)&&bounded(product.productId,100)&&/^#[0-9a-f]{6}$/i.test(product.color)&&['catalog','custom'].includes(product.source);
+ return (product.imageUrl===undefined||(safeProductImage(product.imageUrl)))&&(product.unitPrice===undefined||(Number.isFinite(product.unitPrice)&&product.unitPrice>=0&&product.unitPrice<=1e9))&&(product.currency===undefined||product.currency==='INR')&&bounded(product.brand,80)&&bounded(product.name,160)&&product.name.trim().length>0&&bounded(product.sku,80)&&bounded(product.productId,100)&&/^#[0-9a-f]{6}$/i.test(product.color)&&['catalog','custom'].includes(product.source);
 }
 export function productLabel(f){const p=f.props?.product;return p?[p.brand,p.name,p.sku].filter(Boolean).join(' · '):f.props?.label||byId[f.catalogId]?.name||'Fixture';}
 export function addedProducts(plan,roomId,externalOnly=false){return (plan.fixtures||[]).filter(f=>(!roomId||f.roomId===roomId)&&(!externalOnly||f.props?.installation==='exterior'||f.props?.product?.source==='custom'));}
@@ -40,7 +41,7 @@ export function productEstimate(plans){
 export function catalogProduct(p){
  const value={brand:String(p.brand||'').slice(0,80),name:String(p.product_name||p.name||'').slice(0,160),sku:String(p.sku||'').slice(0,80),productId:String(p.id||'').slice(0,100),color:'#eeeeea',source:'catalog',currency:'INR'};
  if(p.price!==null&&p.price!==undefined&&p.price!==''&&Number.isFinite(Number(p.price))&&Number(p.price)>=0)value.unitPrice=Number(p.price);
- if(typeof p.image_url==='string'&&/^https?:\/\//i.test(p.image_url)&&p.image_url.length<=2000)value.imageUrl=p.image_url;
+ if(safeProductImage(p.image_url))value.imageUrl=p.image_url;
  if(!validateProduct(value))throw Error('This product has invalid catalog details.');
  return value;
 }
