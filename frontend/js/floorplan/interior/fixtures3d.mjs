@@ -14,11 +14,21 @@ export function fixtureGroup(plan){
  const [w,h,l]=d.size,id=d.id,wood=f.props?.color||'#967251',fabric=f.props?.product?.color||f.props?.color||'#a1b4a3',ivory=f.props?.product?.color||f.props?.color||'#eee7db';
  if(f.mount==='line'){
   const points=f.props?.points||[{x:f.position.x,y:f.position.y},{x:f.position.x+1,y:f.position.y}];g.rotation.y=0;g.scale.setScalar(FT);for(let i=1;i<points.length;i++){const a=new T.Vector3(points[i-1].x-f.position.x,0,points[i-1].y-f.position.y),b=new T.Vector3(points[i].x-f.position.x,0,points[i].y-f.position.y);if(a.distanceTo(b)<.01)continue;const tube=add(new T.CylinderGeometry(.045,.045,a.distanceTo(b),8),id==='drain-pipe'?'#7d6854':'#459bc6');tube.position.copy(a.clone().add(b).multiplyScalar(.5));tube.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),b.sub(a).normalize());}
+ }else if(d.category==='Parking'){
+ const car=id==='car';box(w*.85,h*.35,l*.85,car?'#536579':'#303b43',0,h*.25);box(w*.72,h*.4,l*.42,'#9cbbc5',0,h*.6,-l*.05);
+ for(const z of [-l*.32,l*.32])for(const x of (car?[-w*.44,w*.44]:[0])){const wheel=cyl(car?.85:.85,car?.85:.85,car?.4:.25,'#1f2428',x,.85,z);wheel.rotation.z=Math.PI/2;}
+ if(!car){box(w*.8,.12,.15,'#aab8bc',0,h,-l*.3);box(w*.4,.15,l*.2,'#1c242b',0,h*.85,l*.05);}
+ }else if(d.category==='Appliances'&&!id.includes('fan')){
+ box(w,h,l,'#d8dfe2');box(w*.9,h*.45,.06,['oven','microwave'].includes(id)?'#263947':'#b4c1c9',0,h*.55,l/2+.03);box(w*.4,.08,.08,'#526370',0,h*.82,l/2+.1);
+ if(id==='washing-machine'){const drum=add(new T.CircleGeometry(w*.32,32),'#344f60',0,h*.45,l/2+.08);}
+ }else if(id==='tv-unit'){box(w,h*.4,l,wood);box(w*.8,h*.65,.12,'#172a39',0,h*.72,0);box(w*.7,h*.52,.03,'#344e60',0,h*.72,.08);
  }else if(id.includes('mirror')){
   const round=id!=='rect-mirror'&&id!=='full-mirror';const m=add(round?new T.CircleGeometry(w/2,48):new T.PlaneGeometry(w,h),'#b1c9cb',0,0,.16,{metalness:.95,roughness:.08});m.material.side=T.DoubleSide;
   const ring=add(new T.TorusGeometry(w/2+.07,.045,8,48),'#ffe3ad',0,0,.18,{emissive:'#ffca79',emissiveIntensity:f.props.on===false?0:2});if(!round)ring.visible=false;
  }else if(id.includes('plant')||id==='planter'){
   cyl(w*.32,w*.25,h*.25,'#cbbba3');for(let i=0;i<16;i++){const angle=i*2.4,height=h*.3+(i%7)/7*h*.65;const leaf=add(new T.SphereGeometry(1,8,6),i%2?'#38644b':'#618c52',Math.cos(angle)*w*.25,height,Math.sin(angle)*w*.25,{roughness:.8});leaf.scale.set(w*.15,h*.22,w*.07);leaf.rotation.set(.4,angle,.5);}cyl(.035,.05,h*.75,'#6b6045',0,h*.45);
+ }else if(id==='table-fan'||id==='pedestal-fan'){
+ cyl(w*.4,w*.45,.12,'#60717a');cyl(.06,.06,h*.65,'#86959c',0,h*.35);const face=add(new T.CircleGeometry(w*.45,32),'#9eafb7',0,h*.72,0);for(let i=0;i<3;i++){const blade=box(w*.32,.12,.05,'#354d5c',0,h*.72,.08);blade.rotation.z=i*Math.PI/3;}
  }else if(id.includes('fan')){
   cyl(.08,.08,.5,'#737b75',0,-.2);const rotor=new T.Group();rotor.userData.fan=true;g.add(rotor);for(let i=0;i<3;i++){const blade=box(id==='ceiling-fan'?1.8:.7,.06,.26,wood,.8,-.4);g.remove(blade);const pivot=new T.Group();pivot.rotation.y=i*Math.PI*2/3;pivot.add(blade);rotor.add(pivot);}cyl(.23,.23,.15,ivory,0,-.4);if(id!=='ceiling-fan')rotor.rotation.x=Math.PI/2;
  }else if(['bed','king-bed','queen-bed'].includes(id)){
