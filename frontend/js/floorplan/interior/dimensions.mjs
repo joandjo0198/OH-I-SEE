@@ -22,3 +22,17 @@ export function resizeAtCursor(plan,f,point){
  const width=Math.max(.1,Math.abs(dx*Math.cos(angle)+dy*Math.sin(angle))*2),depth=Math.max(.1,Math.abs(-dx*Math.sin(angle)+dy*Math.cos(angle))*2);
  return resizeFixture(plan,f,[width,fixtureSize(f)[1],depth]);
 }
+
+// New drops may turn to fit a porch, but never shrink the real dimensions.
+export function dropParking(plan,item,x,y){
+ if(!Number.isFinite(x)||!Number.isFinite(y)||x<0||y<0||x>plan.plot.width||y>plan.plot.depth)throw Error('Drop the vehicle inside the plot or parking area.');
+ const candidates=[];
+ for(const rotation of [0,90]){
+ const w=item.size[rotation===0?0:2],d=item.size[rotation===0?2:0];
+ const areas=[{x:0,y:0,width:plan.plot.width,depth:plan.plot.depth},...plan.rooms.filter(r=>['sitout','parking','porch','garage'].includes(r.type)&&x>=r.x&&x<=r.x+r.width&&y>=r.y&&y<=r.y+r.depth)];
+ for(const a of areas){if(w>a.width||d>a.depth)continue;const px=Math.max(a.x+w/2,Math.min(a.x+a.width-w/2,x)),py=Math.max(a.y+d/2,Math.min(a.y+a.depth-d/2,y));try{const result=parkingPosition(plan,item,px,py,rotation);candidates.push({result,distance:Math.hypot(px-x,py-y)});}catch{}}
+ }
+ candidates.sort((a,b)=>a.distance-b.distance);
+ if(!candidates.length)throw Error('This vehicle needs '+item.size[0]+' × '+item.size[2]+' ft of clear parking space. Drop it in a larger outdoor area.');
+ return candidates[0].result;
+}

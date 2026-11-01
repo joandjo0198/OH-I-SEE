@@ -1,4 +1,4 @@
-import {fixtureSize,parkingPosition} from './dimensions.mjs';
+import {fixtureSize,parkingPosition,dropParking} from './dimensions.mjs';
 import {validateProduct,productLabel} from './products.mjs';
 import {byId} from './catalog.js';
 export const roomAt=(plan,x,y)=>plan.rooms.find(r=>x>=r.x&&x<=r.x+r.width&&y>=r.y&&y<=r.y+r.depth);
@@ -11,7 +11,7 @@ export function snap(plan,item,x,y,precise=false){
  }
  return {roomId:r.id,position:{x,y,z:item.mountType==='ceiling'?plan.settings.wallHeight-(item.id==='ceiling-fan'?.8:.2):item.elevation},rotation};
 }
-export function makeFixture(plan,catalogId,x,y,precise=false){const item=byId[catalogId];if(!item)throw Error('Unknown fixture.');if(item.category==='Parking')return {id:crypto.randomUUID(),catalogId,category:item.category,...parkingPosition(plan,item,x,y),scale:1,mount:item.mountType,props:{label:item.name,installation:'exterior'}};return {id:crypto.randomUUID(),catalogId,category:item.category,...snap(plan,item,x,y,precise),scale:1,mount:item.mountType,props:{label:item.name,...item.light}};}
+export function makeFixture(plan,catalogId,x,y,precise=false){const item=byId[catalogId];if(!item)throw Error('Unknown fixture.');if(item.category==='Parking')return {id:crypto.randomUUID(),catalogId,category:item.category,...dropParking(plan,item,x,y),scale:1,mount:item.mountType,props:{label:item.name,installation:'exterior'}};return {id:crypto.randomUUID(),catalogId,category:item.category,...snap(plan,item,x,y,precise),scale:1,mount:item.mountType,props:{label:item.name,...item.light}};}
 export function wallRoute(a,b,r){
  const left=r.x+.22,top=r.y+.22,w=r.width-.44,h=r.depth-.44,total=2*(w+h);
  const t=p=>Math.abs(p.y-top)<.01?p.x-left:Math.abs(p.x-left-w)<.01?w+p.y-top:Math.abs(p.y-top-h)<.01?w+h+left+w-p.x:2*w+h+top+h-p.y;

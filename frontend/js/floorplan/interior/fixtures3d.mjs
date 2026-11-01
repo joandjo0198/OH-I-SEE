@@ -1,3 +1,4 @@
+import {vehicleModel} from './vehicle-models.mjs';
 import {fixtureSize} from './dimensions.mjs';
 import {RoundedBoxGeometry} from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import {productLabel} from './products.mjs';
@@ -15,9 +16,7 @@ export function fixtureGroup(plan){
  if(f.mount==='line'){
   const points=f.props?.points||[{x:f.position.x,y:f.position.y},{x:f.position.x+1,y:f.position.y}];g.rotation.y=0;g.scale.setScalar(FT);for(let i=1;i<points.length;i++){const a=new T.Vector3(points[i-1].x-f.position.x,0,points[i-1].y-f.position.y),b=new T.Vector3(points[i].x-f.position.x,0,points[i].y-f.position.y);if(a.distanceTo(b)<.01)continue;const tube=add(new T.CylinderGeometry(.045,.045,a.distanceTo(b),8),id==='drain-pipe'?'#7d6854':'#459bc6');tube.position.copy(a.clone().add(b).multiplyScalar(.5));tube.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),b.sub(a).normalize());}
  }else if(d.category==='Parking'){
- const car=id==='car';box(w*.85,h*.35,l*.85,car?'#536579':'#303b43',0,h*.25);box(w*.72,h*.4,l*.42,'#9cbbc5',0,h*.6,-l*.05);
- for(const z of [-l*.32,l*.32])for(const x of (car?[-w*.44,w*.44]:[0])){const wheel=cyl(car?.85:.85,car?.85:.85,car?.4:.25,'#1f2428',x,.85,z);wheel.rotation.z=Math.PI/2;}
- if(!car){box(w*.8,.12,.15,'#aab8bc',0,h,-l*.3);box(w*.4,.15,l*.2,'#1c242b',0,h*.85,l*.05);}
+ g.add(vehicleModel(id,w,h,l));
  }else if(d.category==='Appliances'&&!id.includes('fan')){
  box(w,h,l,'#d8dfe2');box(w*.9,h*.45,.06,['oven','microwave'].includes(id)?'#263947':'#b4c1c9',0,h*.55,l/2+.03);box(w*.4,.08,.08,'#526370',0,h*.82,l/2+.1);
  if(id==='washing-machine'){const drum=add(new T.CircleGeometry(w*.32,32),'#344f60',0,h*.45,l/2+.08);}

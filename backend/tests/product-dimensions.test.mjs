@@ -40,3 +40,10 @@ test('requested appliances have finite 2D and 3D geometry',()=>{
  plan.fixtures=[makeFixture(plan,id,7,26,true)];assert.deepEqual(validateFixtures(plan),[]);assert.doesNotMatch(fixtureSVG(plan),/NaN|undefined/);const group=fixtureGroup(plan);assert.equal(group.children.length,1);group.traverse(o=>{if(o.geometry)assert.ok([...o.geometry.attributes.position.array].every(Number.isFinite));});
  }
 });
+
+test('reference sitout accepts car by rotating and bicycle without shrinking either',()=>{
+ const p=referencePlan();const car=makeFixture(p,'car',16,51.5,true);assert.equal(car.rotation,90);assert.equal(car.roomId,'porch');assert.deepEqual(fixtureSize(car),[6,4.8,14]);
+ const cycle=makeFixture(p,'bicycle',25,51.5,true);assert.equal(cycle.roomId,'porch');assert.deepEqual(fixtureSize(cycle),[2,3.5,6]);
+ for(const f of [car,cycle]){const model=fixtureGroup({fixtures:[f]}),names=[];model.traverse(o=>names.push(o.name));assert.ok(names.includes('Wheel spoke'));assert.ok(names.includes('Tire'));assert.ok(names.includes(f.catalogId==='car'?'Windows and windscreen':'Frame tube'));}
+ assert.throws(()=>makeFixture(p,'car',-1,51));assert.throws(()=>makeFixture(p,'car',9,12));
+});
