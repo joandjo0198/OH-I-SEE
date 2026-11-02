@@ -1,45 +1,54 @@
-import {constructionFrame, constructionSvg} from './hero-rigid-construction.mjs';
-
+// Use the supplied footage as the background media only. Existing UI stays intact.
 const hero = document.getElementById('hero');
 const button = document.getElementById('hero-film-control');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 if (hero && button) {
-  // No video, camera motion, per-frame warping, or interpolated building edges.
-  hero.insertAdjacentHTML('afterbegin', constructionSvg());
-  const scene = hero.querySelector('.hero-rigid-construction');
-  const groups = [...scene.querySelectorAll('[data-construction-stage]')];
-  let elapsed = 0, previous = null, frame = null;
+  const video = document.createElement('video');
+  video.className = 'hero-construction-film';
+  video.src = '/videos/home-supplied-clean-v5.mp4';
+  video.poster = '/videos/home-supplied-clean-poster-v5.jpg';
+  video.muted = true;
+  video.defaultMuted = true;
+  video.loop = true;
+  video.playsInline = true;
+  video.preload = 'metadata';
+  video.setAttribute('aria-hidden', 'true');
+  video.style.zIndex = '1';
+  const background = hero.querySelector('.hero-clean-background');
+  if (background) background.src = video.poster;
+  hero.prepend(video);
   let playing = !reduced.matches && !navigator.connection?.saveData;
   let visible = true;
+  let disposed = false;
   function paint() {
-    const state = constructionFrame(elapsed);
-    groups.forEach((group, i) => {
-      group.querySelector('[data-shade]').setAttribute('opacity', state.layers[i].shade.toFixed(4));
-      const lines = group.querySelector('[data-lines]');
-      lines.setAttribute('opacity', state.layers[i].line.toFixed(4));
-      lines.setAttribute('stroke-dashoffset', (1-state.layers[i].draw).toFixed(4));
-    });
     button.textContent = playing ? 'Pause' : 'Play construction';
-    button.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} house construction reveal`);
+    button.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} house construction animation`);
     button.setAttribute('aria-pressed', String(playing));
   }
-  function tick(now) {
-    if (previous !== null) elapsed += Math.min((now-previous)/1000, .1);
-    previous = now;
-    paint();
-    frame = requestAnimationFrame(tick);
-  }
   function sync() {
-    if (frame !== null) cancelAnimationFrame(frame);
-    frame = null; previous = null;
+    if (disposed) return;
     paint();
-    if (playing && visible && !document.hidden) frame = requestAnimationFrame(tick);
+    if (playing && visible && !document.hidden) {
+      video.play().catch(() => {
+        if (playing && visible && !document.hidden && !disposed) { playing = false; paint(); }
+      });
+    } else video.pause();
   }
+  video.addEventListener('playing', () => {
+    if (!playing || !visible || document.hidden || disposed) { video.pause(); return; }
+    video.classList.add('is-playing');
+  });
+  video.addEventListener('error', () => {
+    playing = false;
+    video.classList.remove('is-playing');
+    paint();
+  });
   button.addEventListener('click', () => { playing = !playing; sync(); });
   document.addEventListener('visibilitychange', sync);
-  reduced.addEventListener('change', () => { if(reduced.matches){playing=false;elapsed=0;} sync(); });
-  const observer = new IntersectionObserver(entries => {visible=entries[0].isIntersecting;sync();});
+  reduced.addEventListener('change', () => { if (reduced.matches) playing = false; sync(); });
+  const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; sync(); });
   observer.observe(hero);
-  window.addEventListener('pagehide', () => {if(frame!==null)cancelAnimationFrame(frame);observer.disconnect();});
+  window.addEventListener('pagehide', () => { disposed = true; video.pause(); observer.disconnect(); });
+  window.addEventListener('pageshow', () => { if (disposed) { disposed = false; observer.observe(hero); sync(); } });
   sync();
 }
