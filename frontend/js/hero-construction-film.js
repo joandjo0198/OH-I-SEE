@@ -5,8 +5,8 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 if (hero && button) {
   const video = document.createElement('video');
   video.className = 'hero-construction-film';
-  video.src = '/videos/home-supplied-clean-v5.mp4';
-  video.poster = '/videos/home-supplied-clean-poster-v5.jpg';
+  video.src = '/videos/home-architecture-only-v6.mp4';
+  video.poster = '/videos/home-architecture-only-poster-v6.jpg';
   video.muted = true;
   video.defaultMuted = true;
   video.loop = true;

@@ -107,3 +107,6 @@ body.home-dark .page-loader{display:none}
 #hero .hero-copy-wrapper{z-index:3}
 #hero .hero-film-control{z-index:4}
 @media(max-width:900px){#hero .hero-rigid-construction{height:auto;aspect-ratio:270/134;bottom:auto}}
+
+/* The architecture-only clip fills the existing hero without side letterboxing. */
+#hero .hero-construction-film,#hero .hero-clean-background{object-fit:cover!important;object-position:center top}
